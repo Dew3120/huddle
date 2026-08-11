@@ -2,6 +2,10 @@
 
 
 
+\## Project Description
+
+
+
 Huddle is a collaborative task board for small teams to create, assign, move, and sync tasks in real time.
 
 
@@ -10,7 +14,7 @@ Huddle is a collaborative task board for small teams to create, assign, move, an
 
 
 
-\- Frontend: Next.js (React)
+\- Frontend: Next.js (React + TypeScript)
 
 \- Backend: Node.js + Express
 
@@ -18,7 +22,7 @@ Huddle is a collaborative task board for small teams to create, assign, move, an
 
 \- Auth: JWT
 
-\- Realtime: Socket.io
+\- Real-time: Socket.io
 
 \- Testing: Jest, React Testing Library, Supertest
 
@@ -28,9 +32,57 @@ Huddle is a collaborative task board for small teams to create, assign, move, an
 
 
 
-\## Branch Strategy
+\## Milestone 1 Scope
 
 
 
-All feature work must be done on feature branches and merged into main through pull requests.
+\- React-based frontend scaffold
+
+\- Kanban board screen
+
+\- Board, Column, and TaskCard components
+
+\- Mock task data
+
+\- Wireframe
+
+\- Component tree
+
+
+
+\## Component Tree
+
+
+
+```text
+
+App
+
++-- KanbanBoardScreen
+
+|   +-- KanbanNavbar
+
+|   +-- KanbanColumn
+
+|       +-- TaskCard
+
+|   +-- TaskModal
+
+|   +-- TaskDetailModal
+
++-- AuthScreen
+
+&#x20;   +-- LoginForm
+
+&#x20;   +-- SignUpForm
+
+```
+
+
+
+\## Backend Constraint
+
+
+
+Although Next.js supports API routes, this project will use a separate Node.js + Express backend to match the coursework brief.
 
