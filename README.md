@@ -1,36 +1,86 @@
-\# Huddle
+# Huddle
 
-
+## Project Description
 
 Huddle is a collaborative task board for small teams to create, assign, move, and sync tasks in real time.
 
+## Tech Stack
 
+- Frontend: Next.js (React + TypeScript)
+- Backend: Node.js + Express
+- Database: MongoDB + Mongoose
+- Auth: JWT
+- Real-time: Socket.io
+- Testing: Jest, React Testing Library, Supertest
+- CI/CD: GitHub Actions
+- DevOps: Docker Compose
 
-\## Tech Stack
+## Milestone 1 Scope
 
+- React-based frontend scaffold
+- Kanban board screen
+- Board, Column, and TaskCard components
+- Mock task data
+- Wireframes / visual mockups
+- Component tree
 
+## Component Tree
 
-\- Frontend: Next.js (React)
+```text
+src/app/layout.tsx
++-- src/app/page.tsx
+|   +-- AuthScreen
+|       +-- LoginForm
+|       +-- SignUpForm
++-- src/app/sign-up-login-screen/page.tsx
+|   +-- AuthScreen
+|       +-- LoginForm
+|       +-- SignUpForm
++-- src/app/kanban-board/page.tsx
+    +-- KanbanBoardScreen
+        +-- KanbanNavbar
+        |   +-- AppLogo
+        +-- KanbanColumn
+        |   +-- TaskCard
+        +-- TaskModal
+        +-- TaskDetailModal
 
-\- Backend: Node.js + Express
+Shared UI components:
++-- AppLogo
+|   +-- AppImage
+|   +-- AppIcon
++-- AppImage
++-- AppIcon
+```
 
-\- Database: MongoDB + Mongoose
+## Wireframes / Visual Mockups
 
-\- Auth: JWT
+The following v0 mockups were used as visual references for the Milestone 1 frontend skeleton.
 
-\- Realtime: Socket.io
+### Auth Screen
 
-\- Testing: Jest, React Testing Library, Supertest
+![Auth screen v0 mockup](docs/wireframes/auth-screen-v0-mockup.png)
 
-\- CI/CD: GitHub Actions
+### Sign-Up Screen
 
-\- DevOps: Docker Compose
+![Sign-up screen v0 mockup](docs/wireframes/signup-screen-v0-mockup.png)
 
+### Kanban Board
 
+![Kanban board v0 mockup](docs/wireframes/kanban-board-v0-mockup.png)
 
-\## Branch Strategy
+### Create Task Modal
 
+![Create task modal v0 mockup](docs/wireframes/task-modal-v0-mockup.png)
 
+### Task Detail Modal
 
-All feature work must be done on feature branches and merged into main through pull requests.
+![Task detail modal v0 mockup](docs/wireframes/task-detail-modal-v0-mockup.png)
 
+### Edit Task Modal
+
+![Edit task modal v0 mockup](docs/wireframes/edit-task-modal-v0-mockup.png)
+
+## Backend Constraint
+
+Although Next.js supports API routes, this project will use a separate Node.js + Express backend to match the coursework brief.
