@@ -27,16 +27,30 @@ Huddle is a collaborative task board for small teams to create, assign, move, an
 ## Component Tree
 
 ```text
-App
-+-- KanbanBoardScreen
-|   +-- KanbanNavbar
-|   +-- KanbanColumn
-|       +-- TaskCard
-|   +-- TaskModal
-|   +-- TaskDetailModal
-+-- AuthScreen
-    +-- LoginForm
-    +-- SignUpForm
+src/app/layout.tsx
++-- src/app/page.tsx
+|   +-- AuthScreen
+|       +-- LoginForm
+|       +-- SignUpForm
++-- src/app/sign-up-login-screen/page.tsx
+|   +-- AuthScreen
+|       +-- LoginForm
+|       +-- SignUpForm
++-- src/app/kanban-board/page.tsx
+    +-- KanbanBoardScreen
+        +-- KanbanNavbar
+        |   +-- AppLogo
+        +-- KanbanColumn
+        |   +-- TaskCard
+        +-- TaskModal
+        +-- TaskDetailModal
+
+Shared UI components:
++-- AppLogo
+|   +-- AppImage
+|   +-- AppIcon
++-- AppImage
++-- AppIcon
 ```
 
 ## Wireframes / Visual Mockups
