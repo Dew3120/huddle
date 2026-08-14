@@ -1,9 +1,23 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+
+import {
+  clearSession,
+  getToken,
+  taskApi,
+  type TaskInput,
+} from '@/lib/api';
+
 import type { ColumnId, TagKey, Task } from './types';
-import { COLUMN_ORDER, INITIAL_TASKS, TEAMMATES } from './types';
+import { COLUMN_ORDER, TEAMMATES } from './types';
 import KanbanColumn from './KanbanColumn';
 import KanbanNavbar from './KanbanNavbar';
 import TaskDetailModal from './TaskDetailModal';
@@ -11,44 +25,109 @@ import TaskModal from './TaskModal';
 
 export type ModalMode = 'create' | 'edit' | null;
 
-function getInitialDarkMode() {
-  if (typeof window === 'undefined') return false;
-
-  const stored = localStorage.getItem('huddle-dark-mode');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-  return stored !== null ? stored === 'true' : prefersDark;
-}
-
 export default function KanbanBoardScreen() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const router = useRouter();
+
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
   const [filterTag, setFilterTag] = useState<TagKey | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [defaultColumn, setDefaultColumn] = useState<ColumnId>('todo');
+  const [defaultColumn, setDefaultColumn] =
+    useState<ColumnId>('todo');
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [dragOverColumn, setDragOverColumn] = useState<ColumnId | null>(null);
-  const [isDark, setIsDark] = useState(getInitialDarkMode);
+  const [dragOverColumn, setDragOverColumn] =
+    useState<ColumnId | null>(null);
+  const [isDark, setIsDark] = useState(false);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
 
   const glowRef = useRef<HTMLDivElement>(null);
   const mousePos = useRef({ x: -200, y: -200 });
   const rafId = useRef<number | null>(null);
+  const darkModeReady = useRef(false);
 
   useEffect(() => {
+    let active = true;
+
+    const loadTasks = async () => {
+      if (!getToken()) {
+        router.replace('/');
+        return;
+      }
+
+      try {
+        const loadedTasks = await taskApi.getAll();
+
+        if (active) {
+          setTasks(loadedTasks);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to load tasks';
+
+        const authenticationFailed =
+          message.includes('token') ||
+          message === 'User no longer exists';
+
+        if (authenticationFailed) {
+          clearSession();
+          toast.error('Your session expired. Please sign in again.');
+          router.replace('/');
+          return;
+        }
+
+        toast.error(message);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadTasks();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('huddle-dark-mode');
+    const prefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    ).matches;
+    const dark = stored !== null
+      ? stored === 'true'
+      : prefersDark;
+
+    document.documentElement.classList.toggle('dark', dark);
+
+    const frameId = requestAnimationFrame(() => {
+      darkModeReady.current = true;
+      setIsDark(dark);
+      localStorage.setItem('huddle-dark-mode', String(dark));
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, []);
+
+  useEffect(() => {
+    if (!darkModeReady.current) return;
+
     document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('huddle-dark-mode', String(isDark));
   }, [isDark]);
 
-  const toggleDark = useCallback(() => {
-    setIsDark((previous) => !previous);
-  }, []);
-
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      mousePos.current = { x: event.clientX, y: event.clientY };
+      mousePos.current = {
+        x: event.clientX,
+        y: event.clientY,
+      };
 
       if (rafId.current) return;
 
@@ -62,7 +141,9 @@ export default function KanbanBoardScreen() {
       });
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -73,11 +154,18 @@ export default function KanbanBoardScreen() {
     };
   }, []);
 
-  const openCreateModal = useCallback((columnId: ColumnId = 'todo') => {
-    setDefaultColumn(columnId);
-    setEditingTask(null);
-    setModalMode('create');
+  const toggleDark = useCallback(() => {
+    setIsDark((previous) => !previous);
   }, []);
+
+  const openCreateModal = useCallback(
+    (columnId: ColumnId = 'todo') => {
+      setDefaultColumn(columnId);
+      setEditingTask(null);
+      setModalMode('create');
+    },
+    [],
+  );
 
   const openEditModal = useCallback((task: Task) => {
     setEditingTask(task);
@@ -97,45 +185,154 @@ export default function KanbanBoardScreen() {
     setEditingTask(null);
   }, []);
 
+  const refreshTasks = useCallback(async () => {
+    const loadedTasks = await taskApi.getAll();
+    setTasks(loadedTasks);
+  }, []);
+
   const handleSaveTask = useCallback(
-    (data: Omit<Task, 'id' | 'createdAt'>) => {
-      if (modalMode === 'create') {
-        const newTask: Task = {
-          ...data,
-          id: `task-${Date.now()}`,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
+    async (data: TaskInput) => {
+      try {
+        if (modalMode === 'create') {
+          const createdTask = await taskApi.create(data);
 
-        setTasks((previous) => [...previous, newTask]);
-        toast.success('Task created successfully');
+          setTasks((previous) => [
+            ...previous,
+            createdTask,
+          ]);
+
+          toast.success('Task created successfully');
+        }
+
+        if (modalMode === 'edit' && editingTask) {
+          const updatedTask = await taskApi.update(
+            editingTask.id,
+            {
+              ...data,
+              version: editingTask.version,
+            },
+          );
+
+          setTasks((previous) =>
+            previous.map((task) =>
+              task.id === updatedTask.id
+                ? updatedTask
+                : task,
+            ),
+          );
+
+          toast.success('Task updated');
+        }
+
+        closeModal();
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to save task';
+
+        toast.error(message);
+
+        if (message.includes('another user')) {
+          try {
+            await refreshTasks();
+          } catch {
+            toast.error('Unable to refresh the latest tasks');
+          }
+        }
       }
-
-      if (modalMode === 'edit' && editingTask) {
-        setTasks((previous) =>
-          previous.map((task) => (task.id === editingTask.id ? { ...task, ...data } : task)),
-        );
-
-        toast.success('Task updated');
-      }
-
-      closeModal();
     },
-    [modalMode, editingTask, closeModal],
+    [
+      modalMode,
+      editingTask,
+      closeModal,
+      refreshTasks,
+    ],
   );
 
-  const handleDeleteTask = useCallback((taskId: string) => {
-    setTasks((previous) => previous.filter((task) => task.id !== taskId));
-    toast.success('Task deleted');
-  }, []);
+  const handleDeleteTask = useCallback(
+    async (taskId: string) => {
+      try {
+        await taskApi.remove(taskId);
 
-  const handleMoveTask = useCallback((taskId: string, toColumn: ColumnId) => {
-    setTasks((previous) =>
-      previous.map((task) => (task.id === taskId ? { ...task, columnId: toColumn } : task)),
-    );
+        setTasks((previous) =>
+          previous.filter((task) => task.id !== taskId),
+        );
 
-    const label = toColumn === 'todo' ? 'To Do' : toColumn === 'doing' ? 'Doing' : 'Done';
-    toast.success(`Moved to ${label}`);
-  }, []);
+        setDetailTask((current) =>
+          current?.id === taskId ? null : current,
+        );
+
+        toast.success('Task deleted');
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Unable to delete task',
+        );
+      }
+    },
+    [],
+  );
+
+  const handleMoveTask = useCallback(
+    async (taskId: string, toColumn: ColumnId) => {
+      const currentTask = tasks.find(
+        (task) => task.id === taskId,
+      );
+
+      if (!currentTask || currentTask.columnId === toColumn) {
+        return;
+      }
+
+      setTasks((previous) =>
+        previous.map((task) =>
+          task.id === taskId
+            ? { ...task, columnId: toColumn }
+            : task,
+        ),
+      );
+
+      try {
+        const updatedTask = await taskApi.update(taskId, {
+          columnId: toColumn,
+          version: currentTask.version,
+        });
+
+        setTasks((previous) =>
+          previous.map((task) =>
+            task.id === taskId ? updatedTask : task,
+          ),
+        );
+
+        const label =
+          toColumn === 'todo'
+            ? 'To Do'
+            : toColumn === 'doing'
+              ? 'Doing'
+              : 'Done';
+
+        toast.success(`Moved to ${label}`);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Unable to move task',
+        );
+
+        try {
+          await refreshTasks();
+        } catch {
+          setTasks((previous) =>
+            previous.map((task) =>
+              task.id === taskId ? currentTask : task,
+            ),
+          );
+        }
+      }
+    },
+    [tasks, refreshTasks],
+  );
 
   const handleDragStart = useCallback((taskId: string) => {
     setDraggedId(taskId);
@@ -148,10 +345,12 @@ export default function KanbanBoardScreen() {
   const handleDrop = useCallback(
     (columnId: ColumnId) => {
       if (draggedId) {
-        const task = tasks.find((item) => item.id === draggedId);
+        const task = tasks.find(
+          (item) => item.id === draggedId,
+        );
 
         if (task && task.columnId !== columnId) {
-          handleMoveTask(draggedId, columnId);
+          void handleMoveTask(draggedId, columnId);
         }
       }
 
@@ -169,37 +368,69 @@ export default function KanbanBoardScreen() {
   const filteredTasks = tasks.filter((task) => {
     const query = searchQuery.toLowerCase();
 
-    if (filterAssignee && task.assigneeId !== filterAssignee) return false;
-    if (filterTag && task.tag !== filterTag) return false;
-    if (query && !task.title.toLowerCase().includes(query)) return false;
+    if (
+      filterAssignee &&
+      task.assigneeId !== filterAssignee
+    ) {
+      return false;
+    }
+
+    if (filterTag && task.tag !== filterTag) {
+      return false;
+    }
+
+    if (
+      query &&
+      !task.title.toLowerCase().includes(query)
+    ) {
+      return false;
+    }
 
     return true;
   });
 
-  const tasksByColumn = COLUMN_ORDER.reduce<Record<ColumnId, Task[]>>(
+  const tasksByColumn = COLUMN_ORDER.reduce<
+    Record<ColumnId, Task[]>
+  >(
     (accumulator, columnId) => {
-      accumulator[columnId] = filteredTasks.filter((task) => task.columnId === columnId);
+      accumulator[columnId] = filteredTasks.filter(
+        (task) => task.columnId === columnId,
+      );
+
       return accumulator;
     },
     { todo: [], doing: [], done: [] },
   );
 
-  const totalByColumn = COLUMN_ORDER.reduce<Record<ColumnId, number>>(
+  const totalByColumn = COLUMN_ORDER.reduce<
+    Record<ColumnId, number>
+  >(
     (accumulator, columnId) => {
-      accumulator[columnId] = tasks.filter((task) => task.columnId === columnId).length;
+      accumulator[columnId] = tasks.filter(
+        (task) => task.columnId === columnId,
+      ).length;
+
       return accumulator;
     },
     { todo: 0, doing: 0, done: 0 },
   );
 
-  const columnDelays = ['delay-75', 'delay-150', 'delay-225'];
+  const columnDelays = [
+    'delay-75',
+    'delay-150',
+    'delay-225',
+  ];
 
   return (
     <div className="dark-transition board-bg relative flex min-h-screen flex-col overflow-x-hidden">
       <div
         ref={glowRef}
         className="cursor-glow"
-        style={{ width: 400, height: 400, opacity: isDark ? 0.72 : 0.58 }}
+        style={{
+          width: 400,
+          height: 400,
+          opacity: isDark ? 0.72 : 0.58,
+        }}
         aria-hidden="true"
       />
 
@@ -216,7 +447,10 @@ export default function KanbanBoardScreen() {
         onToggleDark={toggleDark}
       />
 
-      <main className="flex-1 overflow-x-auto px-6 pb-6 pt-[88px]">
+      <main
+        className="flex-1 overflow-x-auto px-6 pb-6 pt-[88px]"
+        aria-busy={isLoading}
+      >
         <div className="flex h-full min-w-[960px] gap-5 xl:min-w-0">
           {COLUMN_ORDER.map((columnId, index) => (
             <div
@@ -233,8 +467,12 @@ export default function KanbanBoardScreen() {
                 draggedTaskId={draggedId}
                 onAddTask={() => openCreateModal(columnId)}
                 onEditTask={openEditModal}
-                onDeleteTask={handleDeleteTask}
-                onMoveTask={handleMoveTask}
+                onDeleteTask={(taskId) => {
+                  void handleDeleteTask(taskId);
+                }}
+                onMoveTask={(taskId, columnId) => {
+                  void handleMoveTask(taskId, columnId);
+                }}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
@@ -268,8 +506,7 @@ export default function KanbanBoardScreen() {
             openEditModal(detailTask);
           }}
           onDelete={() => {
-            handleDeleteTask(detailTask.id);
-            closeDetailModal();
+            void handleDeleteTask(detailTask.id);
           }}
         />
       )}
