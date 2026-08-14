@@ -27,11 +27,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={plusJakartaSans.variable}
-      data-scroll-behavior="smooth"
-    >
+    <html lang="en" className={plusJakartaSans.variable}>
       <body className={plusJakartaSans.className}>
         {children}
         <Toaster position="bottom-right" richColors />
