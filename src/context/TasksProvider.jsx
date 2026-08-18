@@ -31,7 +31,9 @@ export default function TasksProvider({ children }) {
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
 
     return () => {
@@ -50,6 +52,14 @@ export default function TasksProvider({ children }) {
     });
   }
 
+  function updateTask(taskId, changes) {
+    dispatch({
+      type: 'updated',
+      id: taskId,
+      changes,
+    });
+  }
+
   function deleteTask(taskId) {
     dispatch({
       type: 'deleted',
@@ -60,7 +70,9 @@ export default function TasksProvider({ children }) {
   function moveTask(taskId, direction) {
     const task = tasks.find((item) => item.id === taskId);
 
-    if (!task) return;
+    if (!task) {
+      return;
+    }
 
     const currentIndex = statusOrder.indexOf(task.status);
     const change = direction === 'right' ? 1 : -1;
@@ -84,6 +96,7 @@ export default function TasksProvider({ children }) {
     loading,
     error,
     addTask,
+    updateTask,
     deleteTask,
     moveTask,
     retryLoading,

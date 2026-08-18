@@ -6,6 +6,18 @@ export function tasksReducer(state, action) {
     case 'added':
       return [...state, action.task];
 
+    case 'updated':
+      return state.map((task) =>
+        task.id === action.id
+          ? {
+              ...task,
+              title: action.changes.title,
+              assignee: action.changes.assignee,
+              dueDate: action.changes.dueDate,
+            }
+          : task,
+      );
+
     case 'moved':
       return state.map((task) =>
         task.id === action.id

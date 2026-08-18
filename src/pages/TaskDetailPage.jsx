@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import EditTaskForm from '../components/EditTaskForm.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import { useTasks } from '../hooks/useTasks.js';
@@ -11,7 +13,14 @@ const statusLabels = {
 
 export default function TaskDetailPage() {
   const { id } = useParams();
-  const { tasks, loading, error, retryLoading } = useTasks();
+  const [isEditing, setIsEditing] = useState(false);
+  const {
+    tasks,
+    loading,
+    error,
+    updateTask,
+    retryLoading,
+  } = useTasks();
 
   if (loading) {
     return (
@@ -45,37 +54,64 @@ export default function TaskDetailPage() {
     );
   }
 
+  function handleSave(changes) {
+    updateTask(task.id, changes);
+    setIsEditing(false);
+  }
+
   return (
     <main className="app-shell">
       <section className="task-detail">
-        <Link className="text-link" to="/">
-          Back to board
-        </Link>
+        <div className="task-detail__toolbar">
+          <Link className="text-link" to="/">
+            Back to board
+          </Link>
+
+          {!isEditing && (
+            <button
+              type="button"
+              className="task-detail__edit"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit task
+            </button>
+          )}
+        </div>
 
         <p className="task-detail__eyebrow">
           {statusLabels[task.status]}
         </p>
 
-        <h1>{task.title}</h1>
+        <h1>{isEditing ? 'Edit task' : task.title}</h1>
 
-        <dl className="task-detail__information">
-          <div>
-            <dt>Assignee</dt>
-            <dd>{task.assignee}</dd>
-          </div>
+        {isEditing ? (
+          <EditTaskForm
+            task={task}
+            onSave={handleSave}
+            onCancel={() => setIsEditing(false)}
+          />
+        ) : (
+          <dl className="task-detail__information">
+            <div>
+              <dt>Assignee</dt>
+              <dd>{task.assignee}</dd>
+            </div>
 
-          <div>
-            <dt>Status</dt>
-            <dd>{statusLabels[task.status]}</dd>
-          </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{statusLabels[task.status]}</dd>
+            </div>
 
-          <div>
-            <dt>Due date</dt>
-            <dd>
-              <time dateTime={task.dueDate}>{task.dueDate}</time>
-            </dd>
-          </div>
-        </dl>
+            <div>
+              <dt>Due date</dt>
+              <dd>
+                <time dateTime={task.dueDate}>
+                  {task.dueDate}
+                </time>
+              </dd>
+            </div>
+          </dl>
+        )}
       </section>
     </main>
   );

@@ -469,6 +469,49 @@ input:focus-visible {
   margin: 6px 0 0;
 }
 
+.task-detail__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.task-detail__edit {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid #3578a8;
+  border-radius: 6px;
+  background: #3578a8;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.task-detail__edit:hover {
+  background: #2b648d;
+}
+
+.task-edit-form {
+  max-width: none;
+  margin: 24px 0 0;
+}
+
+.task-edit-form__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-form .task-edit-form__cancel {
+  border-color: #b8c5d4;
+  background: #ffffff;
+  color: #1e3a5f;
+}
+
+.task-form .task-edit-form__cancel:hover {
+  background: #edf5fb;
+}
+
 @media (max-width: 600px) {
   .app-navigation {
     align-items: flex-start;
