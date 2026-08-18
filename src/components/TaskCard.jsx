@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const statusLabels = {
   todo: 'To Do',
   'in-progress': 'In Progress',
@@ -22,7 +24,11 @@ export default function TaskCard({
         {statusLabels[status] ?? 'Unknown'}
       </span>
 
-      <h3 className="task-card__title">{title}</h3>
+      <h3 className="task-card__title">
+        <Link className="task-card__link" to={`/tasks/${id}`}>
+          {title}
+        </Link>
+      </h3>
 
       <dl className="task-card__details">
         <div>
@@ -38,11 +44,15 @@ export default function TaskCard({
         </div>
       </dl>
 
-      <div className="task-card__actions" aria-label={`Actions for ${title}`}>
+      <div
+        className="task-card__actions"
+        aria-label={`Actions for ${title}`}
+      >
         <button
           type="button"
           onClick={() => onMove(id, 'left')}
           disabled={cannotMoveLeft}
+          aria-label={`Move ${title} left`}
         >
           Move left
         </button>
@@ -51,6 +61,7 @@ export default function TaskCard({
           type="button"
           onClick={() => onMove(id, 'right')}
           disabled={cannotMoveRight}
+          aria-label={`Move ${title} right`}
         >
           Move right
         </button>
@@ -59,6 +70,7 @@ export default function TaskCard({
           type="button"
           className="task-card__delete"
           onClick={() => onDelete(id)}
+          aria-label={`Delete ${title}`}
         >
           Delete
         </button>
