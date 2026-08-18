@@ -120,6 +120,17 @@ input:focus-visible {
   background: #125744;
 }
 
+.form-error {
+  color: #b42318;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.task-form input[aria-invalid="true"] {
+  border-color: #d92d20;
+  background: #fffafa;
+}
+
 .screen-state {
   display: grid;
   justify-items: center;
