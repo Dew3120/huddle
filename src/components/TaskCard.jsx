@@ -5,11 +5,17 @@ const statusLabels = {
 };
 
 export default function TaskCard({
+  id,
   title,
   assignee = 'Unassigned',
   status = 'todo',
   dueDate,
+  onDelete,
+  onMove,
 }) {
+  const cannotMoveLeft = status === 'todo';
+  const cannotMoveRight = status === 'done';
+
   return (
     <article className={`task-card task-card--${status}`}>
       <span className="task-card__status">
@@ -31,6 +37,32 @@ export default function TaskCard({
           </dd>
         </div>
       </dl>
+
+      <div className="task-card__actions" aria-label={`Actions for ${title}`}>
+        <button
+          type="button"
+          onClick={() => onMove(id, 'left')}
+          disabled={cannotMoveLeft}
+        >
+          Move left
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onMove(id, 'right')}
+          disabled={cannotMoveRight}
+        >
+          Move right
+        </button>
+
+        <button
+          type="button"
+          className="task-card__delete"
+          onClick={() => onDelete(id)}
+        >
+          Delete
+        </button>
+      </div>
     </article>
   );
 }
