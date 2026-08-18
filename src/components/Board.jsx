@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { mockTasks } from '../data/mockTasks.js';
+import { useEffect, useState } from 'react';
+import { getTasks } from '../api/tasks.js';
 import AddTaskForm from './AddTaskForm.jsx';
 import Column from './Column.jsx';
+import ErrorState from './ErrorState.jsx';
+import LoadingState from './LoadingState.jsx';
 import TaskCard from './TaskCard.jsx';
 
 const columns = [
@@ -13,26 +15,52 @@ const columns = [
 const statusOrder = columns.map((column) => column.status);
 
 export default function Board() {
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadCount, setReloadCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+    setError('');
+
+    getTasks()
+      .then((data) => {
+        if (!cancelled) setTasks(data);
+      })
+      .catch((requestError) => {
+        if (!cancelled) {
+          setError(requestError.message || 'An unexpected error occurred.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadCount]);
 
   const completedCount = tasks.filter(
     (task) => task.status === 'done',
   ).length;
 
   function addTask(taskDetails) {
-    const newTask = {
-      id: crypto.randomUUID(),
-      ...taskDetails,
-      status: 'todo',
-    };
-
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    setTasks((currentTasks) => [
+      ...currentTasks,
+      {
+        id: crypto.randomUUID(),
+        ...taskDetails,
+        status: 'todo',
+      },
+    ]);
   }
 
   function deleteTask(taskId) {
-    const confirmed = window.confirm('Delete this task permanently?');
-
-    if (confirmed) {
+    if (window.confirm('Delete this task permanently?')) {
       setTasks((currentTasks) =>
         currentTasks.filter((task) => task.id !== taskId),
       );
@@ -62,33 +90,46 @@ export default function Board() {
           <span>Plan, assign, and track your team&apos;s work.</span>
         </div>
 
-        <strong className="board-progress" aria-live="polite">
-          {completedCount} of {tasks.length} done
-        </strong>
+        {!loading && !error && (
+          <strong className="board-progress" aria-live="polite">
+            {completedCount} of {tasks.length} done
+          </strong>
+        )}
       </header>
 
-      <AddTaskForm onAdd={addTask} />
+      {loading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState
+          message={error}
+          onRetry={() => setReloadCount((count) => count + 1)}
+        />
+      ) : (
+        <>
+          <AddTaskForm onAdd={addTask} />
 
-      <section className="board" aria-label="Team task board">
-        {columns.map((column) => (
-          <Column
-            key={column.status}
-            title={column.title}
-            status={column.status}
-          >
-            {tasks
-              .filter((task) => task.status === column.status)
-              .map((task) => (
-                <TaskCard
-                  key={task.id}
-                  {...task}
-                  onDelete={deleteTask}
-                  onMove={moveTask}
-                />
-              ))}
-          </Column>
-        ))}
-      </section>
+          <section className="board" aria-label="Team task board">
+            {columns.map((column) => (
+              <Column
+                key={column.status}
+                title={column.title}
+                status={column.status}
+              >
+                {tasks
+                  .filter((task) => task.status === column.status)
+                  .map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      {...task}
+                      onDelete={deleteTask}
+                      onMove={moveTask}
+                    />
+                  ))}
+              </Column>
+            ))}
+          </section>
+        </>
+      )}
     </main>
   );
 }
