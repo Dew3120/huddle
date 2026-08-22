@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Button from './Button/Button.jsx';
 
 const statusLabels = {
   todo: 'To Do',
@@ -48,32 +49,38 @@ export default function TaskCard({
         className="task-card__actions"
         aria-label={`Actions for ${title}`}
       >
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="small"
           onClick={() => onMove(id, 'left')}
           disabled={cannotMoveLeft}
           aria-label={`Move ${title} left`}
         >
           Move left
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="small"
           onClick={() => onMove(id, 'right')}
           disabled={cannotMoveRight}
           aria-label={`Move ${title} right`}
         >
           Move right
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="danger"
+          size="small"
           className="task-card__delete"
           onClick={() => onDelete(id)}
           aria-label={`Delete ${title}`}
         >
           Delete
-        </button>
+        </Button>
       </div>
     </article>
   );

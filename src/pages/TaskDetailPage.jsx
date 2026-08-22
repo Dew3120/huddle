@@ -4,6 +4,7 @@ import EditTaskForm from '../components/EditTaskForm.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import { useTasks } from '../hooks/useTasks.js';
+import Button from '../components/Button/Button.jsx';
 
 const statusLabels = {
   todo: 'To Do',
@@ -67,15 +68,11 @@ export default function TaskDetailPage() {
             Back to board
           </Link>
 
-          {!isEditing && (
-            <button
-              type="button"
-              className="task-detail__edit"
-              onClick={() => setIsEditing(true)}
-            >
-              Edit task
-            </button>
-          )}
+         {!isEditing && (
+  <Button type="button" onClick={() => setIsEditing(true)}>
+    Edit task
+  </Button>
+)}
         </div>
 
         <p className="task-detail__eyebrow">

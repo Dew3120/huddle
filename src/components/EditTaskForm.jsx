@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Button from './Button/Button.jsx';
 
 function getToday() {
   const date = new Date();
@@ -137,16 +138,12 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
         )}
       </label>
 
-      <div className="task-edit-form__actions">
-        <button
-          type="button"
-          className="task-edit-form__cancel"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-        <button type="submit">Save changes</button>
-      </div>
+     <div className="task-edit-form__actions">
+  <Button type="button" variant="secondary" onClick={onCancel}>
+    Cancel
+  </Button>
+  <Button type="submit">Save changes</Button>
+</div>
     </form>
   );
 }
