@@ -133,4 +133,4 @@ export default function AddTaskForm({ onAdd }) {
       <Button type="submit">Add task</Button>
     </form>
   );
-}   
+}
