@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Button from './Button/Button.jsx';
 
 const initialForm = {
   title: '',
@@ -11,24 +12,20 @@ function getToday() {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-
   return `${year}-${month}-${day}`;
 }
 
 export default function AddTaskForm({ onAdd }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
-
   const today = getToday();
 
   function handleChange(event) {
     const { name, value } = event.target;
-
     setForm((current) => ({
       ...current,
       [name]: value,
     }));
-
     setErrors((current) => ({
       ...current,
       [name]: '',
@@ -61,7 +58,6 @@ export default function AddTaskForm({ onAdd }) {
 
   function handleSubmit(event) {
     event.preventDefault();
-
     const nextErrors = validateForm();
 
     if (Object.keys(nextErrors).length > 0) {
@@ -74,7 +70,6 @@ export default function AddTaskForm({ onAdd }) {
       assignee: form.assignee.trim(),
       dueDate: form.dueDate,
     });
-
     setForm(initialForm);
     setErrors({});
   }
@@ -135,7 +130,7 @@ export default function AddTaskForm({ onAdd }) {
         )}
       </label>
 
-      <button type="submit">Add task</button>
+      <Button type="submit">Add task</Button>
     </form>
   );
-}
+}   
