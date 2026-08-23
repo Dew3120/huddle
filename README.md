@@ -50,9 +50,10 @@ This version intentionally focuses on the React front end. Backend APIs, authent
 
 ## Team Contributions
 
-- Dew / team lead: repository scope alignment, Vite React setup, board foundation, routing, shared task state, task actions, validation, edit flow, integration, and review.
-- Charles: reusable `Button` component and shared button styling.
-- Vinuka: task search, filter utilities, filter UI, URL query state, result counts, and no-results flow.
+- T D Gnanasena: repository scope alignment, Vite React setup, board foundation, routing, shared task state, task actions, validation, edit flow, integration, README, and final UI polish.
+- J Charles: reusable `Button` component and shared button styling.
+- K V Dilnath: task search, filter utilities, filter UI, URL query state, result counts, and no-results flow.
+- R S Boklagama: final report support, resource gathering, screenshot evidence, and layout/color palette review.
 
 ## Local Development
 
@@ -153,11 +154,55 @@ App
             +-- NotFoundPage
 ```
 
+## Application Screenshots
+
+These screenshots show the running Assignment 01 Vite app, not the early wireframe mockups.
+
+### Board Dashboard
+
+![Board dashboard](docs/screenshots/board-page.png)
+
+The board dashboard shows Huddle's main workflow with sticky navigation, a progress summary, task creation, search/filter controls, and the three required task columns.
+
+### Create Task Page
+
+![Create task page](docs/screenshots/create-task-page.png)
+
+The create task route shows the controlled form used to add new tasks into the board.
+
+### Task Detail Modal
+
+![Task detail modal](docs/screenshots/task-detail-modal.png)
+
+The detail route opens a selected task as a focused modal while keeping the board visible behind a blur.
+
+### Edit Task Form
+
+![Edit task form](docs/screenshots/edit-task-form.png)
+
+The edit state allows task title, assignee, and due date updates through the same shared task state.
+
+### Search and Filter State
+
+![Search and filter state](docs/screenshots/search-filter-state.png)
+
+The filtered board shows search input, matching task counts, and reduced task results.
+
+### No Matching Tasks State
+
+![No matching tasks state](docs/screenshots/no-results-state.png)
+
+The no-results state gives a clear message and a recovery action when filters match no tasks.
+
+### 404 Page
+
+![404 page](docs/screenshots/not-found-page.png)
+
+The catch-all route displays a not-found page and provides a return path to the board.
+
 ## Wireframes / Visual Mockups
 
-The existing images are kept as planning wireframes and visual reference material. They can be used as design frameworks for explaining the intended interface, but they should not be presented as final screenshots of the running app.
-
-If final proof screenshots are required for submission, run the app locally and capture current screenshots from the Vite app. Those can be added later under `docs/screenshots/`.
+The existing images are kept as planning wireframes and visual reference material. They can be used as design frameworks for explaining the intended interface, but the final proof screenshots are listed in the Application Screenshots section above.
 
 ### Kanban Board
 
