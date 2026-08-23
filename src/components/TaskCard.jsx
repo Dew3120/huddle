@@ -21,7 +21,9 @@ export default function TaskCard({
 
   return (
     <article className={`task-card task-card--${status}`}>
-      <span className="task-card__status">
+      <span
+        className={`task-card__status status-pill status-pill--${status}`}
+      >
         {statusLabels[status] ?? 'Unknown'}
       </span>
 
@@ -34,7 +36,11 @@ export default function TaskCard({
       <dl className="task-card__details">
         <div>
           <dt>Assignee</dt>
-          <dd>{assignee}</dd>
+          <dd>
+            <span className="metadata-pill metadata-pill--assignee">
+              {assignee}
+            </span>
+          </dd>
         </div>
 
         <div>

@@ -1,6 +1,9 @@
 import { NavLink } from 'react-router-dom';
+import Button from './Button/Button.jsx';
 
-export default function AppNavigation() {
+export default function AppNavigation({ theme, onToggleTheme }) {
+  const nextThemeLabel = theme === 'dark' ? 'Light mode' : 'Dark mode';
+
   return (
     <nav className="app-navigation" aria-label="Main navigation">
       <NavLink className="app-navigation__brand" to="/">
@@ -26,6 +29,17 @@ export default function AppNavigation() {
         >
           New task
         </NavLink>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="small"
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={`Switch to ${nextThemeLabel}`}
+        >
+          {nextThemeLabel}
+        </Button>
       </div>
     </nav>
   );

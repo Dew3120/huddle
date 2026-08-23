@@ -6,19 +6,22 @@
   gap: 8px;
   padding: 9px 18px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--control-radius, 6px);
   font: inherit;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  box-shadow: var(--button-shadow, none);
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
-    color 150ms ease;
+    box-shadow 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
 }
 
 .button:focus-visible {
-  outline: 3px solid rgb(53 120 168 / 25%);
+  outline: 3px solid var(--focus-ring, rgb(53 120 168 / 25%));
   outline-offset: 2px;
 }
 
@@ -27,37 +30,47 @@
   opacity: 0.45;
 }
 
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
 .primary {
-  border-color: #176b55;
-  background: #176b55;
-  color: #ffffff;
+  border-color: var(--button-primary-border, #176b55);
+  background: var(--button-primary-bg, #176b55);
+  color: var(--button-primary-text, #ffffff);
+  box-shadow: var(--button-primary-shadow, none);
 }
 
 .primary:hover:not(:disabled) {
-  border-color: #125744;
-  background: #125744;
+  border-color: var(--button-primary-hover-border, #125744);
+  background: var(--button-primary-hover-bg, #125744);
+  box-shadow: var(--button-primary-hover-shadow, none);
 }
 
 .secondary {
-  border-color: #b8c5d4;
-  background: #ffffff;
-  color: #1e3a5f;
+  border-color: var(--button-secondary-border, #b8c5d4);
+  background: var(--button-secondary-bg, #ffffff);
+  color: var(--button-secondary-text, #1e3a5f);
+  box-shadow: var(--button-secondary-shadow, none);
 }
 
 .secondary:hover:not(:disabled) {
-  border-color: #3578a8;
-  background: #edf5fb;
+  border-color: var(--button-secondary-hover-border, #3578a8);
+  background: var(--button-secondary-hover-bg, #edf5fb);
+  box-shadow: var(--button-secondary-hover-shadow, none);
 }
 
 .danger {
-  border-color: #e7b6b6;
-  background: #ffffff;
-  color: #a51d2d;
+  border-color: var(--button-danger-border, #e7b6b6);
+  background: var(--button-danger-bg, #ffffff);
+  color: var(--button-danger-text, #a51d2d);
+  box-shadow: var(--button-danger-shadow, none);
 }
 
 .danger:hover:not(:disabled) {
-  border-color: #d99090;
-  background: #fff1f1;
+  border-color: var(--button-danger-hover-border, #d99090);
+  background: var(--button-danger-hover-bg, #fff1f1);
+  box-shadow: var(--button-danger-hover-shadow, none);
 }
 
 .small {

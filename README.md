@@ -27,19 +27,25 @@ This version intentionally focuses on the React front end. Backend APIs, authent
 ## Implemented Features
 
 - Three-column task board for `To Do`, `In Progress`, and `Done`.
+- Sticky navigation and board summary header while scrolling.
 - Mock tasks loaded through an isolated API module.
 - Loading, error, retry, empty, and success feedback states.
 - Controlled form for adding tasks.
 - Validation for required fields, minimum title length, and past due dates.
 - Task detail route with validated editing.
+- Task detail modal over a blurred board background.
 - Immutable task movement between columns.
 - Delete confirmation before removing tasks.
+- Independent scrolling inside each board column.
+- Colored status and assignee pills on task cards and task details.
 - Search by task title.
 - Filter by assignee, status, and overdue tasks.
 - Filter state stored in the URL query string.
 - Clear-filters action and no-results state.
 - Shared task state managed through Context and reducer actions.
 - Reusable `Button` component for consistent button styling.
+- Dark theme with glowing cards, buttons, and cursor movement feedback.
+- Light theme with blue cursor glow and blue frame glow on hover.
 - Route handling for board, new task, task detail/edit, and 404 pages.
 
 ## Team Contributions

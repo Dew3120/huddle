@@ -70,7 +70,7 @@ export default function BoardPage() {
 
   return (
     <main className="app-shell">
-      <header className="page-header">
+      <header className="page-header page-header--sticky">
         <div>
           <p>Huddle workspace</p>
           <h1>Team Task Board</h1>
