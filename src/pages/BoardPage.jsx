@@ -29,7 +29,7 @@ export default function BoardPage() {
   };
 
   const assignees = useMemo(() => getAssignees(tasks), [tasks]);
-  
+
   const visibleTasks = useMemo(
     () => filterTasks(tasks, filters),
     [tasks, filters.query, filters.assignee, filters.status, filters.overdue],
@@ -54,13 +54,13 @@ export default function BoardPage() {
   function updateFilter(name, value) {
     const nextParams = new URLSearchParams(searchParams);
     const key = name === 'query' ? 'q' : name;
-    
+
     if (value === '' || value === false) {
       nextParams.delete(key);
     } else {
       nextParams.set(key, String(value));
     }
-    
+
     setSearchParams(nextParams, { replace: true });
   }
 
@@ -90,7 +90,7 @@ export default function BoardPage() {
       ) : (
         <>
           <AddTaskForm onAdd={addTask} />
-          
+
           <TaskFilters
             filters={filters}
             assignees={assignees}
