@@ -1,138 +1,210 @@
 # Huddle
 
-## Project Description
+## Assignment 01 Front-End Client
 
-Huddle is a collaborative task board for small teams to create, assign, move, and sync tasks in real time.
+Huddle is a collaborative task board for small teams to create, assign, filter, move, edit, and delete tasks. The current repository is aligned with the Assignment 01 / Session 1 front-end scope: a Vite + React client that uses mock data and front-end state.
+
+This version intentionally focuses on the React front end. Backend APIs, authentication, database persistence, real-time sync, automated tests, CI, Docker, and deployment are planned for later milestones.
+
+## Current Status
+
+- The `main` branch contains the merged Assignment 01 front-end foundation.
+- Charles's reusable `Button` component work has been merged.
+- Vinuka's task search and filtering work has been merged.
+- The app builds successfully with `npm run build`.
 
 ## Tech Stack
 
-- Frontend: Next.js (React + TypeScript)
-- Backend: Node.js + Express
-- Database: MongoDB + Mongoose
-- Auth: JWT
-- Real-time: Socket.io
-- Testing: Jest, React Testing Library, Supertest
-- CI/CD: GitHub Actions
-- DevOps: Docker Compose
+- React
+- Vite
+- React Router
+- Context API and `useReducer`
+- JavaScript
+- CSS Modules for the shared button component
+- Global CSS for the application layout and responsive styling
+- Mock task API backed by local data
 
-## Milestone 1 Scope
+## Implemented Features
 
-- React-based frontend scaffold
-- Kanban board screen
-- Board, Column, and TaskCard components
-- Mock task data
-- Wireframes / visual mockups
-- Component tree
+- Three-column task board for `To Do`, `In Progress`, and `Done`.
+- Mock tasks loaded through an isolated API module.
+- Loading, error, retry, empty, and success feedback states.
+- Controlled form for adding tasks.
+- Validation for required fields, minimum title length, and past due dates.
+- Task detail route with validated editing.
+- Immutable task movement between columns.
+- Delete confirmation before removing tasks.
+- Search by task title.
+- Filter by assignee, status, and overdue tasks.
+- Filter state stored in the URL query string.
+- Clear-filters action and no-results state.
+- Shared task state managed through Context and reducer actions.
+- Reusable `Button` component for consistent button styling.
+- Route handling for board, new task, task detail/edit, and 404 pages.
 
-## Milestone 2 Scope
+## Team Contributions
 
-- Separate Node.js and Express REST API
-- Routes, controllers, models, and authentication middleware
-- User registration and login with JWT authentication
-- Protected task CRUD endpoints
-- Frontend forms and Kanban actions connected to the API
-- Optimistic version checks that return HTTP 409 for stale updates
-- Manual browser and API verification
-
-See the [API contract](docs/api-contract.md) for the endpoint definitions.
+- Dew / team lead: repository scope alignment, Vite React setup, board foundation, routing, shared task state, task actions, validation, edit flow, integration, and review.
+- Charles: reusable `Button` component and shared button styling.
+- Vinuka: task search, filter utilities, filter UI, URL query state, result counts, and no-results flow.
 
 ## Local Development
 
-Requirements: Node.js 20 or newer and npm.
+Requirements: Node.js and npm.
 
-1. Install the frontend dependencies:
+Install dependencies:
 
-   ```powershell
-   npm install
-   ```
+```powershell
+npm install
+```
 
-2. Install the backend dependencies:
+Start the local development server:
 
-   ```powershell
-   cd server
-   npm install
-   Copy-Item .env.example .env
-   ```
+```powershell
+npm run dev
+```
 
-3. Set a private `JWT_SECRET` in `server/.env`.
+Vite usually serves the app at `http://localhost:5173/`. If that port is busy, Vite will print the new local URL in the terminal.
 
-4. Start the API from the `server` directory:
+Create a production build:
 
-   ```powershell
-   npm run dev
-   ```
+```powershell
+npm run build
+```
 
-5. In another terminal, start the frontend from the repository root:
+Preview the production build locally:
 
-   ```powershell
-   npm run dev
-   ```
+```powershell
+npm run preview
+```
 
-The frontend runs at `http://localhost:3000` and the API runs at
-`http://localhost:5000` by default.
+## Routes
+
+```text
+/             Board page
+/tasks/new    New task page
+/tasks/:id    Task detail and edit page
+*             Not found page
+```
+
+## Project Structure
+
+```text
+src/
++-- api/
+|   +-- tasks.js
++-- components/
+|   +-- AddTaskForm.jsx
+|   +-- AppNavigation.jsx
+|   +-- Board.jsx
+|   +-- Button/
+|   |   +-- Button.jsx
+|   |   +-- Button.module.css
+|   +-- Column.jsx
+|   +-- EditTaskForm.jsx
+|   +-- ErrorState.jsx
+|   +-- LoadingState.jsx
+|   +-- TaskCard.jsx
+|   +-- TaskFilters.jsx
++-- context/
+|   +-- TasksContext.js
+|   +-- TasksProvider.jsx
++-- data/
+|   +-- mockTasks.js
++-- hooks/
+|   +-- useTasks.js
++-- pages/
+|   +-- BoardPage.jsx
+|   +-- NewTaskPage.jsx
+|   +-- NotFoundPage.jsx
+|   +-- TaskDetailPage.jsx
++-- utils/
+|   +-- filterTasks.js
+|   +-- tasksReducer.js
++-- App.jsx
++-- index.css
++-- main.jsx
+```
 
 ## Component Tree
 
 ```text
-src/app/layout.tsx
-+-- src/app/page.tsx
-|   +-- AuthScreen
-|       +-- LoginForm
-|       +-- SignUpForm
-+-- src/app/sign-up-login-screen/page.tsx
-|   +-- AuthScreen
-|       +-- LoginForm
-|       +-- SignUpForm
-+-- src/app/kanban-board/page.tsx
-    +-- KanbanBoardScreen
-        +-- KanbanNavbar
-        |   +-- AppLogo
-        +-- KanbanColumn
-        |   +-- TaskCard
-        +-- TaskModal
-        +-- TaskDetailModal
-
-Shared UI components:
-+-- AppLogo
-|   +-- AppImage
-|   +-- AppIcon
-+-- AppImage
-+-- AppIcon
+App
++-- BrowserRouter
+    +-- TasksProvider
+        +-- AppNavigation
+        +-- Routes
+            +-- BoardPage
+            |   +-- AddTaskForm
+            |   +-- TaskFilters
+            |   +-- Board
+            |       +-- Column
+            |           +-- TaskCard
+            +-- NewTaskPage
+            |   +-- AddTaskForm
+            +-- TaskDetailPage
+            |   +-- EditTaskForm
+            +-- NotFoundPage
 ```
 
 ## Wireframes / Visual Mockups
 
-The following v0 mockups were used as visual references for the Milestone 1 frontend skeleton.
+The existing images are kept as planning wireframes and visual reference material. They can be used as design frameworks for explaining the intended interface, but they should not be presented as final screenshots of the running app.
 
-### Auth Screen
-
-![Auth screen v0 mockup](docs/wireframes/auth-screen-v0-mockup.png)
-
-### Sign-Up Screen
-
-![Sign-up screen v0 mockup](docs/wireframes/signup-screen-v0-mockup.png)
+If final proof screenshots are required for submission, run the app locally and capture current screenshots from the Vite app. Those can be added later under `docs/screenshots/`.
 
 ### Kanban Board
 
 ![Kanban board v0 mockup](docs/wireframes/kanban-board-v0-mockup.png)
 
-### Create Task Modal
+### Create Task Flow
 
 ![Create task modal v0 mockup](docs/wireframes/task-modal-v0-mockup.png)
 
-### Task Detail Modal
+### Task Detail Flow
 
 ![Task detail modal v0 mockup](docs/wireframes/task-detail-modal-v0-mockup.png)
 
-### Edit Task Modal
+### Edit Task Flow
 
 ![Edit task modal v0 mockup](docs/wireframes/edit-task-modal-v0-mockup.png)
 
-## Backend Constraint
+### Auth Planning Screens
 
-Although Next.js supports API routes, this project will use a separate Node.js + Express backend to match the coursework brief.
+![Auth screen v0 mockup](docs/wireframes/auth-screen-v0-mockup.png)
+
+![Sign-up screen v0 mockup](docs/wireframes/signup-screen-v0-mockup.png)
+
+## Manual Verification Checklist
+
+- Install dependencies with `npm install`.
+- Confirm the production build passes with `npm run build`.
+- Load the board and confirm mock tasks appear in the correct columns.
+- Add a valid task and confirm it appears on the board.
+- Try invalid task data and confirm validation messages appear.
+- Move tasks between `To Do`, `In Progress`, and `Done`.
+- Delete a task and confirm the browser asks for confirmation.
+- Open a task detail page.
+- Edit a task and confirm the updated values are shown.
+- Use title search and assignee, status, and overdue filters.
+- Refresh the page with filters active and confirm query-string filters remain.
+- Clear filters and confirm all tasks return.
+- Visit an unknown route and confirm the 404 page appears.
 
 ## Current Limitations
 
-- Milestone 2 stores users and tasks in server memory, so data resets when the API restarts. MongoDB persistence is planned for Milestone 3.
-- Automated tests, real-time Socket.io updates, Docker Compose, CI, and public deployment are later milestone work.
+- Tasks are loaded from mock data instead of a real backend.
+- Changes are stored in front-end state only and reset when the page reloads.
+- Authentication and user accounts are not implemented in this milestone.
+- Database persistence is not implemented in this milestone.
+- Real-time updates are not implemented in this milestone.
+- Automated tests, CI, Docker, and public deployment are not part of the current submission.
+
+## Future Milestones
+
+- Add an Express API for task and user data.
+- Add MongoDB persistence.
+- Add authentication and protected routes.
+- Connect the React client to the backend API.
+- Add automated tests and CI checks.
+- Add deployment documentation.
