@@ -1,24 +1,25 @@
-import { tasks } from '../data/tasks.js';
+import * as taskService from '../services/taskService.js';
 
 export function list(req, res) {
-  const { status } = req.query;
+  const result = taskService.listTasks(req.query);
 
-  const filteredTasks = status
-    ? tasks.filter((task) => task.status === status)
-    : tasks;
-
-  res.json(filteredTasks);
+  res.json(result);
 }
 
 export function getOne(req, res) {
-  const { id } = req.params;
-  const task = tasks.find((item) => item.id === id);
+  const task = taskService.getTaskById(req.params.id);
 
   if (!task) {
     return res.status(404).json({
-      message: 'Task not found',
+      error: {
+        message: 'Task not found',
+        code: 'TASK_NOT_FOUND',
+        requestId: req.id,
+      },
     });
   }
 
-  return res.json(task);
+  return res.json({
+    data: task,
+  });
 }

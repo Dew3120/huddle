@@ -13,6 +13,41 @@ This version intentionally focuses on the React front end. Backend APIs, authent
 - Vinuka's task search and filtering work has been merged.
 - The app builds successfully with `npm run build`.
 
+## Assignment 02 Server-Side Progress
+
+This branch starts the Session 2 backend work for the SyncBoard API using Node.js and Express. The implementation follows the lecture architecture by separating server startup, Express app setup, routes, controllers, services, repositories, middleware, and server-side data.
+
+Current backend progress:
+
+- Express server foundation added.
+- Environment configuration added through `.env.example` and `server/config.js`.
+- `server/server.js` starts the API process.
+- `server/app.js` builds the Express app and middleware chain.
+- `GET /api/health` returns API status and uptime.
+- `GET /api/tasks` returns task data with a consistent `{ data, meta }` response shape.
+- `GET /api/tasks/:id` returns one task by id.
+- Missing task ids return `404` with a consistent `{ error }` response shape.
+- Task listing supports `status`, `assignee`, `sort`, `page`, and `limit` query parameters.
+- Request ID and request logger middleware are registered in the middleware chain.
+
+Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Authentication, ownership checks, write validation, full task CRUD, Postman evidence, and frontend live API integration are still pending.
+
+### Session 2 API Contract
+
+| Method & path | Purpose | Success | Errors |
+|---|---|---|---|
+| POST `/api/auth/register` | Create an account | 201 + user | 400, 409 |
+| POST `/api/auth/login` | Exchange credentials for a token | 200 + token | 400, 401 |
+| GET `/api/auth/me` | Current user from the token | 200 + user | 401 |
+| GET `/api/boards` | Boards this user can see | 200 + array | 401 |
+| POST `/api/boards` | Create a board | 201 + board | 400, 401 |
+| GET `/api/boards/:id/tasks` | Tasks on a board, filterable | 200 + array | 401, 403, 404 |
+| GET `/api/tasks` | List tasks, filterable/sortable/pageable | 200 + array | 400, 401 |
+| GET `/api/tasks/:id` | Read one task | 200 + task | 401, 403, 404 |
+| POST `/api/tasks` | Create a task | 201 + task | 400, 401, 403 |
+| PATCH `/api/tasks/:id` | Update fields, including status | 200 + task | 400, 401, 403, 404 |
+| DELETE `/api/tasks/:id` | Remove a task | 204 | 401, 403, 404 |
+
 ## Tech Stack
 
 - React
