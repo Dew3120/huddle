@@ -5,6 +5,7 @@ export const tasks = [
     assignee: 'Alex',
     status: 'todo',
     dueDate: '2026-08-21',
+    ownerId: 'user-001',
   },
   {
     id: 'task-002',
@@ -12,6 +13,7 @@ export const tasks = [
     assignee: 'Maya',
     status: 'todo',
     dueDate: '2026-08-22',
+    ownerId: 'user-001',
   },
   {
     id: 'task-003',
@@ -19,6 +21,7 @@ export const tasks = [
     assignee: 'Sam',
     status: 'todo',
     dueDate: '2026-08-23',
+    ownerId: 'user-001',
   },
   {
     id: 'task-004',
@@ -26,6 +29,7 @@ export const tasks = [
     assignee: 'Alex',
     status: 'in-progress',
     dueDate: '2026-08-24',
+    ownerId: 'user-001',
   },
   {
     id: 'task-005',
@@ -33,6 +37,7 @@ export const tasks = [
     assignee: 'Maya',
     status: 'in-progress',
     dueDate: '2026-08-25',
+    ownerId: 'user-001',
   },
   {
     id: 'task-006',
@@ -40,6 +45,7 @@ export const tasks = [
     assignee: 'Sam',
     status: 'in-progress',
     dueDate: '2026-08-26',
+    ownerId: 'user-001',
   },
   {
     id: 'task-007',
@@ -47,6 +53,7 @@ export const tasks = [
     assignee: 'Alex',
     status: 'done',
     dueDate: '2026-08-18',
+    ownerId: 'user-001',
   },
   {
     id: 'task-008',
@@ -54,6 +61,7 @@ export const tasks = [
     assignee: 'Maya',
     status: 'done',
     dueDate: '2026-08-18',
+    ownerId: 'user-001',
   },
   {
     id: 'task-009',
@@ -61,5 +69,14 @@ export const tasks = [
     assignee: 'Sam',
     status: 'done',
     dueDate: '2026-08-19',
+    ownerId: 'user-001',
+  },
+  {
+    id: 'task-010',
+    title: 'Review restricted workspace access',
+    assignee: 'Jordan',
+    status: 'todo',
+    dueDate: '2026-08-30',
+    ownerId: 'user-002',
   },
 ];

@@ -1,13 +1,13 @@
 import * as taskService from '../services/taskService.js';
 
 export function list(req, res) {
-  const result = taskService.listTasks(req.query);
+  const result = taskService.listTasks(req.query, req.user);
 
   res.json(result);
 }
 
 export function getOne(req, res) {
-  const task = taskService.getTaskById(req.params.id);
+  const task = taskService.getTaskById(req.params.id, req.user);
 
   res.json({
     data: task,
@@ -15,7 +15,7 @@ export function getOne(req, res) {
 }
 
 export function create(req, res) {
-  const task = taskService.createTask(req.body);
+  const task = taskService.createTask(req.body, req.user);
 
   res
     .status(201)
@@ -26,7 +26,7 @@ export function create(req, res) {
 }
 
 export function update(req, res) {
-  const task = taskService.updateTask(req.params.id, req.body);
+  const task = taskService.updateTask(req.params.id, req.body, req.user);
 
   res.json({
     data: task,
@@ -34,7 +34,7 @@ export function update(req, res) {
 }
 
 export function remove(req, res) {
-  taskService.deleteTask(req.params.id);
+  taskService.deleteTask(req.params.id, req.user);
 
   res.status(204).end();
 }

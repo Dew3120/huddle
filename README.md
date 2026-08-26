@@ -24,16 +24,24 @@ Current backend progress:
 - `server/server.js` starts the API process.
 - `server/app.js` builds the Express app and middleware chain.
 - Helmet security headers are registered before the API routes.
+- CORS is configured through `CLIENT_ORIGIN` so the Vite client can call the API.
 - `GET /api/health` returns API status and uptime.
+- `POST /api/auth/register` creates users with bcrypt password hashing.
+- `POST /api/auth/login` returns a short-lived signed JWT.
+- `GET /api/auth/me` returns the authenticated user from the token.
+- Login attempts are rate-limited.
+- Password hashes are never returned by API responses.
+- Task routes are protected with `Authorization: Bearer <token>`.
 - `GET /api/tasks` returns task data with a consistent `{ data, meta }` response shape.
 - `GET /api/tasks/:id` returns one task by id.
 - `POST /api/tasks`, `PATCH /api/tasks/:id`, and `DELETE /api/tasks/:id` provide full in-memory task CRUD.
 - Task create and update requests are validated with Zod middleware.
+- Task ownership is enforced in the service layer using the authenticated user.
 - Missing task ids and unknown routes return `404` through the central error handler.
 - Task listing supports `status`, `assignee`, `sort`, `page`, and `limit` query parameters.
 - Request ID, request logger, async handler, not-found handler, and error handler middleware are registered in the correct order.
 
-Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Authentication, ownership checks, Postman evidence, database persistence, and frontend live API integration are still pending.
+Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Board endpoints, Postman evidence, database persistence, and frontend live API integration are still pending.
 
 ### Session 2 API Contract
 
@@ -58,7 +66,11 @@ Assignment 02 is in progress on the `feature/session-02-backend-foundation` bran
 - React Router
 - Node.js
 - Express
+- CORS
 - Helmet
+- bcryptjs
+- JSON Web Tokens
+- express-rate-limit
 - Zod
 - Context API and `useReducer`
 - JavaScript
@@ -135,6 +147,14 @@ npm run dev:server
 
 The API runs at `http://localhost:4000/` by default. Change the port by copying `.env.example` to `.env` and setting `PORT`.
 
+Required API environment variables:
+
+```env
+PORT=4000
+JWT_SECRET=change-this-development-secret
+CLIENT_ORIGIN=http://localhost:5173
+```
+
 ## Routes
 
 ```text
@@ -190,21 +210,27 @@ server/
 +-- config.js
 +-- server.js
 +-- controllers/
+|   +-- authController.js
 |   +-- taskController.js
 +-- data/
 |   +-- tasks.js
 +-- middleware/
+|   +-- authenticate.js
 |   +-- errorHandler.js
 |   +-- requestId.js
 |   +-- requestLogger.js
 |   +-- validate.js
 +-- repositories/
 |   +-- taskRepository.js
+|   +-- userRepository.js
 +-- routes/
+|   +-- authRoutes.js
 |   +-- taskRoutes.js
 +-- schemas/
+|   +-- authSchema.js
 |   +-- taskSchema.js
 +-- services/
+|   +-- authService.js
 |   +-- taskService.js
 +-- utils/
     +-- AppError.js
@@ -310,7 +336,12 @@ The existing images are kept as planning wireframes and visual reference materia
 - Confirm the production build passes with `npm run build`.
 - Start the backend with `npm run dev:server`.
 - Confirm `GET /api/health` returns `{ data: { status: "ok" } }`.
-- Confirm `GET /api/tasks` returns `{ data, meta }`.
+- Confirm `GET /api/tasks` without a token returns `401`.
+- Confirm `POST /api/auth/register` creates a user without returning a password hash.
+- Confirm `POST /api/auth/login` returns a JWT.
+- Confirm `GET /api/auth/me` works with `Authorization: Bearer <token>`.
+- Confirm `GET /api/tasks` with a valid token returns `{ data, meta }`.
+- Confirm another user's task id returns `404` for the current user.
 - Confirm task create, update, delete, validation errors, and missing ids use the expected status codes and response shapes.
 - Load the board and confirm mock tasks appear in the correct columns.
 - Add a valid task and confirm it appears on the board.
@@ -329,7 +360,8 @@ The existing images are kept as planning wireframes and visual reference materia
 - Tasks are loaded from mock data instead of a real backend.
 - Changes are stored in front-end state only and reset when the page reloads.
 - The Express task API currently uses in-memory server data and resets when the server restarts.
-- Authentication and user accounts are not implemented in this milestone.
+- Authentication currently uses an in-memory user store.
+- Refresh tokens and server-side token revocation are not implemented yet.
 - Database persistence is not implemented in this milestone.
 - Real-time updates are not implemented in this milestone.
 - Automated tests, CI, Docker, and public deployment are not part of the current submission.

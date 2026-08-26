@@ -4,8 +4,16 @@ export function findAll() {
   return tasks;
 }
 
+export function findAllByOwner(ownerId) {
+  return tasks.filter((task) => task.ownerId === ownerId);
+}
+
 export function findById(id) {
   return tasks.find((task) => task.id === id) ?? null;
+}
+
+export function findByIdForOwner(id, ownerId) {
+  return tasks.find((task) => task.id === id && task.ownerId === ownerId) ?? null;
 }
 
 export function create(task) {
@@ -13,8 +21,10 @@ export function create(task) {
   return task;
 }
 
-export function update(id, updates) {
-  const taskIndex = tasks.findIndex((task) => task.id === id);
+export function updateForOwner(id, ownerId, updates) {
+  const taskIndex = tasks.findIndex(
+    (task) => task.id === id && task.ownerId === ownerId,
+  );
 
   if (taskIndex === -1) {
     return null;
@@ -29,8 +39,10 @@ export function update(id, updates) {
   return updatedTask;
 }
 
-export function remove(id) {
-  const taskIndex = tasks.findIndex((task) => task.id === id);
+export function removeForOwner(id, ownerId) {
+  const taskIndex = tasks.findIndex(
+    (task) => task.id === id && task.ownerId === ownerId,
+  );
 
   if (taskIndex === -1) {
     return false;

@@ -20,6 +20,18 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Authentication required', code = 'UNAUTHORIZED') {
+    super(message, 401, code);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message = 'Resource already exists', code = 'CONFLICT') {
+    super(message, 409, code);
+  }
+}
+
 export class ValidationError extends AppError {
   constructor(details) {
     super('Validation failed', 400, 'VALIDATION_ERROR', details);

@@ -4,14 +4,19 @@ import { NotFoundError } from '../utils/AppError.js';
 
 const allowedSortFields = ['title', 'assignee', 'status', 'dueDate'];
 
+function publicTask(task) {
+  const { ownerId, ...taskData } = task;
+  return taskData;
+}
+
 export function listTasks({
   status,
   assignee,
   sort = 'dueDate',
   page = '1',
   limit = '20',
-} = {}) {
-  let result = taskRepository.findAll();
+} = {}, user) {
+  let result = taskRepository.findAllByOwner(user.id);
 
   if (status) {
     result = result.filter((task) => task.status === status);
@@ -38,7 +43,7 @@ export function listTasks({
   const start = (pageNumber - 1) * limitNumber;
 
   return {
-    data: result.slice(start, start + limitNumber),
+    data: result.slice(start, start + limitNumber).map(publicTask),
     meta: {
       page: pageNumber,
       limit: limitNumber,
@@ -47,37 +52,38 @@ export function listTasks({
   };
 }
 
-export function getTaskById(id) {
-  const task = taskRepository.findById(id);
+export function getTaskById(id, user) {
+  const task = taskRepository.findByIdForOwner(id, user.id);
 
   if (!task) {
     throw new NotFoundError('Task');
   }
 
-  return task;
+  return publicTask(task);
 }
 
-export function createTask(taskInput) {
+export function createTask(taskInput, user) {
   const task = {
     id: randomUUID(),
     ...taskInput,
+    ownerId: user.id,
   };
 
-  return taskRepository.create(task);
+  return publicTask(taskRepository.create(task));
 }
 
-export function updateTask(id, updates) {
-  const task = taskRepository.update(id, updates);
+export function updateTask(id, updates, user) {
+  const task = taskRepository.updateForOwner(id, user.id, updates);
 
   if (!task) {
     throw new NotFoundError('Task');
   }
 
-  return task;
+  return publicTask(task);
 }
 
-export function deleteTask(id) {
-  const wasDeleted = taskRepository.remove(id);
+export function deleteTask(id, user) {
+  const wasDeleted = taskRepository.removeForOwner(id, user.id);
 
   if (!wasDeleted) {
     throw new NotFoundError('Task');
