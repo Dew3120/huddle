@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import * as taskRepository from '../repositories/taskRepository.js';
+import { NotFoundError } from '../utils/AppError.js';
 
 const allowedSortFields = ['title', 'assignee', 'status', 'dueDate'];
 
@@ -46,5 +48,38 @@ export function listTasks({
 }
 
 export function getTaskById(id) {
-  return taskRepository.findById(id);
+  const task = taskRepository.findById(id);
+
+  if (!task) {
+    throw new NotFoundError('Task');
+  }
+
+  return task;
+}
+
+export function createTask(taskInput) {
+  const task = {
+    id: randomUUID(),
+    ...taskInput,
+  };
+
+  return taskRepository.create(task);
+}
+
+export function updateTask(id, updates) {
+  const task = taskRepository.update(id, updates);
+
+  if (!task) {
+    throw new NotFoundError('Task');
+  }
+
+  return task;
+}
+
+export function deleteTask(id) {
+  const wasDeleted = taskRepository.remove(id);
+
+  if (!wasDeleted) {
+    throw new NotFoundError('Task');
+  }
 }

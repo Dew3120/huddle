@@ -23,14 +23,17 @@ Current backend progress:
 - Environment configuration added through `.env.example` and `server/config.js`.
 - `server/server.js` starts the API process.
 - `server/app.js` builds the Express app and middleware chain.
+- Helmet security headers are registered before the API routes.
 - `GET /api/health` returns API status and uptime.
 - `GET /api/tasks` returns task data with a consistent `{ data, meta }` response shape.
 - `GET /api/tasks/:id` returns one task by id.
-- Missing task ids return `404` with a consistent `{ error }` response shape.
+- `POST /api/tasks`, `PATCH /api/tasks/:id`, and `DELETE /api/tasks/:id` provide full in-memory task CRUD.
+- Task create and update requests are validated with Zod middleware.
+- Missing task ids and unknown routes return `404` through the central error handler.
 - Task listing supports `status`, `assignee`, `sort`, `page`, and `limit` query parameters.
-- Request ID and request logger middleware are registered in the middleware chain.
+- Request ID, request logger, async handler, not-found handler, and error handler middleware are registered in the correct order.
 
-Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Authentication, ownership checks, write validation, full task CRUD, Postman evidence, and frontend live API integration are still pending.
+Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Authentication, ownership checks, Postman evidence, database persistence, and frontend live API integration are still pending.
 
 ### Session 2 API Contract
 
@@ -53,6 +56,10 @@ Assignment 02 is in progress on the `feature/session-02-backend-foundation` bran
 - React
 - Vite
 - React Router
+- Node.js
+- Express
+- Helmet
+- Zod
 - Context API and `useReducer`
 - JavaScript
 - CSS Modules for the shared button component
@@ -120,6 +127,14 @@ Preview the production build locally:
 npm run preview
 ```
 
+Start the Express API server:
+
+```powershell
+npm run dev:server
+```
+
+The API runs at `http://localhost:4000/` by default. Change the port by copying `.env.example` to `.env` and setting `PORT`.
+
 ## Routes
 
 ```text
@@ -167,6 +182,33 @@ src/
 +-- App.jsx
 +-- index.css
 +-- main.jsx
+```
+
+```text
+server/
++-- app.js
++-- config.js
++-- server.js
++-- controllers/
+|   +-- taskController.js
++-- data/
+|   +-- tasks.js
++-- middleware/
+|   +-- errorHandler.js
+|   +-- requestId.js
+|   +-- requestLogger.js
+|   +-- validate.js
++-- repositories/
+|   +-- taskRepository.js
++-- routes/
+|   +-- taskRoutes.js
++-- schemas/
+|   +-- taskSchema.js
++-- services/
+|   +-- taskService.js
++-- utils/
+    +-- AppError.js
+    +-- asyncHandler.js
 ```
 
 ## Component Tree
@@ -266,6 +308,10 @@ The existing images are kept as planning wireframes and visual reference materia
 
 - Install dependencies with `npm install`.
 - Confirm the production build passes with `npm run build`.
+- Start the backend with `npm run dev:server`.
+- Confirm `GET /api/health` returns `{ data: { status: "ok" } }`.
+- Confirm `GET /api/tasks` returns `{ data, meta }`.
+- Confirm task create, update, delete, validation errors, and missing ids use the expected status codes and response shapes.
 - Load the board and confirm mock tasks appear in the correct columns.
 - Add a valid task and confirm it appears on the board.
 - Try invalid task data and confirm validation messages appear.
@@ -282,6 +328,7 @@ The existing images are kept as planning wireframes and visual reference materia
 
 - Tasks are loaded from mock data instead of a real backend.
 - Changes are stored in front-end state only and reset when the page reloads.
+- The Express task API currently uses in-memory server data and resets when the server restarts.
 - Authentication and user accounts are not implemented in this milestone.
 - Database persistence is not implemented in this milestone.
 - Real-time updates are not implemented in this milestone.

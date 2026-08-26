@@ -9,17 +9,32 @@ export function list(req, res) {
 export function getOne(req, res) {
   const task = taskService.getTaskById(req.params.id);
 
-  if (!task) {
-    return res.status(404).json({
-      error: {
-        message: 'Task not found',
-        code: 'TASK_NOT_FOUND',
-        requestId: req.id,
-      },
-    });
-  }
-
-  return res.json({
+  res.json({
     data: task,
   });
+}
+
+export function create(req, res) {
+  const task = taskService.createTask(req.body);
+
+  res
+    .status(201)
+    .location(`/api/tasks/${task.id}`)
+    .json({
+      data: task,
+    });
+}
+
+export function update(req, res) {
+  const task = taskService.updateTask(req.params.id, req.body);
+
+  res.json({
+    data: task,
+  });
+}
+
+export function remove(req, res) {
+  taskService.deleteTask(req.params.id);
+
+  res.status(204).end();
 }
