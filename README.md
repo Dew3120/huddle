@@ -53,7 +53,7 @@ This version intentionally focuses on the React front end. Backend APIs, authent
 - T D Gnanasena: repository scope alignment, Vite React setup, board foundation, routing, shared task state, task actions, validation, edit flow, integration, README, and final UI polish.
 - J Charles: reusable `Button` component and shared button styling.
 - K V Dilnath: task search, filter utilities, filter UI, URL query state, result counts, and no-results flow.
-- R S Boklagama: final report support, resource gathering, screenshot evidence, and layout/color palette review.
+- R S Boklagama: joined during the finalization stage and supported report finalization, screenshot/resource gathering, and layout/color palette review. His development contribution will begin from the next milestone.
 
 ## Local Development
 
@@ -108,6 +108,7 @@ src/
 |   |   +-- Button.jsx
 |   |   +-- Button.module.css
 |   +-- Column.jsx
+|   +-- CursorGlow.jsx
 |   +-- EditTaskForm.jsx
 |   +-- ErrorState.jsx
 |   +-- LoadingState.jsx
