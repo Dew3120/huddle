@@ -6,6 +6,24 @@ Huddle is a collaborative task board for small teams to create, assign, filter, 
 
 The current `feature/session-02-backend-foundation` branch continues into Assignment 02 / Session 2. It adds a Node.js and Express API, JWT authentication, protected task CRUD, server-side validation, ownership checks, and a live React API integration. Database persistence, real-time sync, automated tests, CI, Docker, and deployment are planned for later milestones.
 
+## Table of Contents
+
+- [Current Status](#current-status)
+- [Assignment 02 Server-Side Progress](#assignment-02-server-side-progress)
+- [Session 2 API Contract](#session-2-api-contract)
+- [Tech Stack](#tech-stack)
+- [Implemented Features](#implemented-features)
+- [Team Contributions](#team-contributions)
+- [Local Development](#local-development)
+- [Routes](#routes)
+- [Project Structure](#project-structure)
+- [Component Tree](#component-tree)
+- [Application Screenshots](#application-screenshots)
+- [Wireframes / Visual Mockups](#wireframes--visual-mockups)
+- [Manual Verification Checklist](#manual-verification-checklist)
+- [Current Limitations](#current-limitations)
+- [Future Milestones](#future-milestones)
+
 ## Current Status
 
 - The `main` branch contains the merged Assignment 01 front-end foundation.
