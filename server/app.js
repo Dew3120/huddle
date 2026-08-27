@@ -13,7 +13,14 @@ const app = express();
 
 app.use(helmet());
 app.use(requestId);
-app.use(cors({ origin: config.clientOrigin, credentials: true }));
+app.use(
+  cors({
+    origin: config.clientOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(requestLogger);
 app.use(express.json({ limit: '100kb' }));
 

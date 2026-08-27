@@ -2,15 +2,16 @@
 
 ## Assignment 01 Front-End Client
 
-Huddle is a collaborative task board for small teams to create, assign, filter, move, edit, and delete tasks. The current repository is aligned with the Assignment 01 / Session 1 front-end scope: a Vite + React client that uses mock data and front-end state.
+Huddle is a collaborative task board for small teams to create, assign, filter, move, edit, and delete tasks. The `main` branch contains the completed Assignment 01 / Session 1 front-end skeleton: a Vite + React client with routes, reusable components, shared task state, validation, search, filters, and polished responsive styling.
 
-This version intentionally focuses on the React front end. Backend APIs, authentication, database persistence, real-time sync, automated tests, CI, Docker, and deployment are planned for later milestones.
+The current `feature/session-02-backend-foundation` branch continues into Assignment 02 / Session 2. It adds a Node.js and Express API, JWT authentication, protected task CRUD, server-side validation, ownership checks, and a live React API integration. Database persistence, real-time sync, automated tests, CI, Docker, and deployment are planned for later milestones.
 
 ## Current Status
 
 - The `main` branch contains the merged Assignment 01 front-end foundation.
 - Charles's reusable `Button` component work has been merged.
 - Vinuka's task search and filtering work has been merged.
+- The current Session 2 branch connects the React client to the Express API.
 - The app builds successfully with `npm run build`.
 
 ## Assignment 02 Server-Side Progress
@@ -40,8 +41,16 @@ Current backend progress:
 - Missing task ids and unknown routes return `404` through the central error handler.
 - Task listing supports `status`, `assignee`, `sort`, `page`, and `limit` query parameters.
 - Request ID, request logger, async handler, not-found handler, and error handler middleware are registered in the correct order.
+- Vite proxies `/api` requests to `http://localhost:4000` during development.
+- `src/api/client.js` centralizes fetch, JSON headers, bearer tokens, `204` responses, and `401` session expiry.
+- `src/api/auth.js` handles register, login, and current-user requests.
+- `src/api/tasks.js` now calls the live Express API instead of local mock data.
+- `src/data/mockTasks.js` has been deleted for the live-data milestone.
+- `AuthProvider` restores sessions, stores the JWT, exposes login/register/logout, and clears invalid sessions.
+- The React board, create form, edit form, move flow, and delete flow now use protected HTTP requests.
+- Server validation errors are shown back inside the React forms.
 
-Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Board endpoints, Postman evidence, database persistence, and frontend live API integration are still pending.
+Assignment 02 is in progress on the `feature/session-02-backend-foundation` branch. Remaining work should be handled in teammate feature branches: Postman evidence, final screenshots/report updates, PR reviews, optional board resource endpoints from the wider API contract, and final integration review before merging.
 
 ### Session 2 API Contract
 
@@ -76,19 +85,21 @@ Assignment 02 is in progress on the `feature/session-02-backend-foundation` bran
 - JavaScript
 - CSS Modules for the shared button component
 - Global CSS for the application layout and responsive styling
-- Mock task API backed by local data
+- Live HTTP API layer with Vite development proxy
 
 ## Implemented Features
 
 - Three-column task board for `To Do`, `In Progress`, and `Done`.
 - Sticky navigation and board summary header while scrolling.
-- Mock tasks loaded through an isolated API module.
+- Sign-in, sign-up, logout, and session restore through `AuthProvider`.
+- Live tasks loaded through an isolated API module.
 - Loading, error, retry, empty, and success feedback states.
 - Controlled form for adding tasks.
 - Validation for required fields, minimum title length, and past due dates.
+- Server validation errors displayed in the React forms.
 - Task detail route with validated editing.
 - Task detail modal over a blurred board background.
-- Immutable task movement between columns.
+- Immutable task state updates after successful API mutations.
 - Delete confirmation before removing tasks.
 - Independent scrolling inside each board column.
 - Colored status and assignee pills on task cards and task details.
@@ -97,6 +108,7 @@ Assignment 02 is in progress on the `feature/session-02-backend-foundation` bran
 - Filter state stored in the URL query string.
 - Clear-filters action and no-results state.
 - Shared task state managed through Context and reducer actions.
+- Protected task API calls with `Authorization: Bearer <token>`.
 - Reusable `Button` component for consistent button styling.
 - Dark theme with glowing cards, buttons, and cursor movement feedback.
 - Light theme with blue cursor glow and blue frame glow on hover.
@@ -145,7 +157,7 @@ Start the Express API server:
 npm run dev:server
 ```
 
-The API runs at `http://localhost:4000/` by default. Change the port by copying `.env.example` to `.env` and setting `PORT`.
+Run the Express API and the Vite client in two separate terminals while developing the full-stack version. The API runs at `http://localhost:4000/` by default. Change the port by copying `.env.example` to `.env` and setting `PORT`.
 
 Required API environment variables:
 
@@ -153,6 +165,13 @@ Required API environment variables:
 PORT=4000
 JWT_SECRET=change-this-development-secret
 CLIENT_ORIGIN=http://localhost:5173
+```
+
+Seeded development login:
+
+```text
+Email: user1@nsbm.lk
+Password: password123
 ```
 
 ## Routes
@@ -169,6 +188,8 @@ CLIENT_ORIGIN=http://localhost:5173
 ```text
 src/
 +-- api/
+|   +-- auth.js
+|   +-- client.js
 |   +-- tasks.js
 +-- components/
 |   +-- AddTaskForm.jsx
@@ -185,18 +206,21 @@ src/
 |   +-- TaskCard.jsx
 |   +-- TaskFilters.jsx
 +-- context/
+|   +-- AuthContext.js
+|   +-- AuthProvider.jsx
 |   +-- TasksContext.js
 |   +-- TasksProvider.jsx
-+-- data/
-|   +-- mockTasks.js
 +-- hooks/
+|   +-- useAuth.js
 |   +-- useTasks.js
 +-- pages/
+|   +-- AuthPage.jsx
 |   +-- BoardPage.jsx
 |   +-- NewTaskPage.jsx
 |   +-- NotFoundPage.jsx
 |   +-- TaskDetailPage.jsx
 +-- utils/
+|   +-- apiErrors.js
 |   +-- filterTasks.js
 |   +-- tasksReducer.js
 +-- App.jsx
@@ -242,6 +266,8 @@ server/
 ```text
 App
 +-- BrowserRouter
+    +-- CursorGlow
+    +-- AuthPage
     +-- TasksProvider
         +-- AppNavigation
         +-- Routes
@@ -343,7 +369,9 @@ The existing images are kept as planning wireframes and visual reference materia
 - Confirm `GET /api/tasks` with a valid token returns `{ data, meta }`.
 - Confirm another user's task id returns `404` for the current user.
 - Confirm task create, update, delete, validation errors, and missing ids use the expected status codes and response shapes.
-- Load the board and confirm mock tasks appear in the correct columns.
+- Start the client with `npm run dev`.
+- Sign in with `user1@nsbm.lk` and `password123`.
+- Load the board and confirm live API tasks appear in the correct columns.
 - Add a valid task and confirm it appears on the board.
 - Try invalid task data and confirm validation messages appear.
 - Move tasks between `To Do`, `In Progress`, and `Done`.
@@ -354,23 +382,21 @@ The existing images are kept as planning wireframes and visual reference materia
 - Refresh the page with filters active and confirm query-string filters remain.
 - Clear filters and confirm all tasks return.
 - Visit an unknown route and confirm the 404 page appears.
+- Click `Log out` and confirm the app returns to the sign-in screen.
 
 ## Current Limitations
 
-- Tasks are loaded from mock data instead of a real backend.
-- Changes are stored in front-end state only and reset when the page reloads.
 - The Express task API currently uses in-memory server data and resets when the server restarts.
 - Authentication currently uses an in-memory user store.
 - Refresh tokens and server-side token revocation are not implemented yet.
+- Board resource endpoints are documented in the wider contract but not implemented yet.
 - Database persistence is not implemented in this milestone.
 - Real-time updates are not implemented in this milestone.
 - Automated tests, CI, Docker, and public deployment are not part of the current submission.
 
 ## Future Milestones
 
-- Add an Express API for task and user data.
 - Add MongoDB persistence.
-- Add authentication and protected routes.
-- Connect the React client to the backend API.
+- Add board resource endpoints and board membership management.
 - Add automated tests and CI checks.
 - Add deployment documentation.

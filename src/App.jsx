@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavigation from './components/AppNavigation.jsx';
 import CursorGlow from './components/CursorGlow.jsx';
+import LoadingState from './components/LoadingState.jsx';
 import TasksProvider from './context/TasksProvider.jsx';
+import { useAuth } from './hooks/useAuth.js';
+import AuthPage from './pages/AuthPage.jsx';
 import BoardPage from './pages/BoardPage.jsx';
 import NewTaskPage from './pages/NewTaskPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
@@ -29,6 +32,7 @@ function TaskModalRoute() {
 
 export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
+  const { user, loading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -44,17 +48,31 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <TasksProvider>
-        <CursorGlow />
-        <AppNavigation theme={theme} onToggleTheme={toggleTheme} />
+      <CursorGlow />
 
-        <Routes>
-          <Route path="/" element={<BoardPage />} />
-          <Route path="/tasks/new" element={<NewTaskPage />} />
-          <Route path="/tasks/:id" element={<TaskModalRoute />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </TasksProvider>
+      {loading ? (
+        <main className="app-shell">
+          <LoadingState />
+        </main>
+      ) : isAuthenticated ? (
+        <TasksProvider>
+          <AppNavigation
+            theme={theme}
+            user={user}
+            onLogout={logout}
+            onToggleTheme={toggleTheme}
+          />
+
+          <Routes>
+            <Route path="/" element={<BoardPage />} />
+            <Route path="/tasks/new" element={<NewTaskPage />} />
+            <Route path="/tasks/:id" element={<TaskModalRoute />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </TasksProvider>
+      ) : (
+        <AuthPage />
+      )}
     </BrowserRouter>
   );
 }

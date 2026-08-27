@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from './Button/Button.jsx';
+import { getErrorMessage, getFieldErrors } from '../utils/apiErrors.js';
 
 const initialForm = {
   title: '',
@@ -18,6 +19,8 @@ function getToday() {
 export default function AddTaskForm({ onAdd }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const today = getToday();
 
   function handleChange(event) {
@@ -30,6 +33,7 @@ export default function AddTaskForm({ onAdd }) {
       ...current,
       [name]: '',
     }));
+    setSubmitError('');
   }
 
   function validateForm() {
@@ -56,7 +60,7 @@ export default function AddTaskForm({ onAdd }) {
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const nextErrors = validateForm();
 
@@ -65,13 +69,23 @@ export default function AddTaskForm({ onAdd }) {
       return;
     }
 
-    onAdd({
-      title: form.title.trim(),
-      assignee: form.assignee.trim(),
-      dueDate: form.dueDate,
-    });
-    setForm(initialForm);
-    setErrors({});
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      await onAdd({
+        title: form.title.trim(),
+        assignee: form.assignee.trim(),
+        dueDate: form.dueDate,
+      });
+      setForm(initialForm);
+      setErrors({});
+    } catch (error) {
+      setErrors(getFieldErrors(error));
+      setSubmitError(getErrorMessage(error, 'Unable to add task.'));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -130,7 +144,15 @@ export default function AddTaskForm({ onAdd }) {
         )}
       </label>
 
-      <Button type="submit">Add task</Button>
+      {submitError && (
+        <p className="form-error task-form__submit-error" role="alert">
+          {submitError}
+        </p>
+      )}
+
+      <Button type="submit" disabled={submitting}>
+        {submitting ? 'Adding...' : 'Add task'}
+      </Button>
     </form>
   );
 }

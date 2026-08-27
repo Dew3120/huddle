@@ -15,6 +15,7 @@ export default function BoardPage() {
     tasks,
     loading,
     error,
+    mutationError,
     addTask,
     deleteTask,
     moveTask,
@@ -45,9 +46,21 @@ export default function BoardPage() {
     filters.status ||
     filters.overdue;
 
-  function handleDelete(taskId) {
+  async function handleDelete(taskId) {
     if (window.confirm('Delete this task permanently?')) {
-      deleteTask(taskId);
+      try {
+        await deleteTask(taskId);
+      } catch {
+        // TasksProvider exposes this failure above the board.
+      }
+    }
+  }
+
+  async function handleMove(taskId, direction) {
+    try {
+      await moveTask(taskId, direction);
+    } catch {
+      // TasksProvider exposes this failure above the board.
     }
   }
 
@@ -91,6 +104,12 @@ export default function BoardPage() {
         <>
           <AddTaskForm onAdd={addTask} />
 
+          {mutationError && (
+            <p className="inline-error" role="alert">
+              {mutationError}
+            </p>
+          )}
+
           <TaskFilters
             filters={filters}
             assignees={assignees}
@@ -104,7 +123,7 @@ export default function BoardPage() {
             <Board
               tasks={visibleTasks}
               onDelete={handleDelete}
-              onMove={moveTask}
+              onMove={handleMove}
             />
           ) : (
             <section className="empty-state" role="status">

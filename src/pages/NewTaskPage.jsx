@@ -6,8 +6,8 @@ export default function NewTaskPage() {
   const navigate = useNavigate();
   const { addTask } = useTasks();
 
-  function handleAdd(taskDetails) {
-    addTask(taskDetails);
+  async function handleAdd(taskDetails) {
+    await addTask(taskDetails);
     navigate('/');
   }
 

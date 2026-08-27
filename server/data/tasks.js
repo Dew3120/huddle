@@ -4,7 +4,7 @@ export const tasks = [
     title: 'Create the login page',
     assignee: 'Alex',
     status: 'todo',
-    dueDate: '2026-08-21',
+    dueDate: '2026-08-27',
     ownerId: 'user-001',
   },
   {
@@ -12,7 +12,7 @@ export const tasks = [
     title: 'Build the registration form',
     assignee: 'Maya',
     status: 'todo',
-    dueDate: '2026-08-22',
+    dueDate: '2026-08-28',
     ownerId: 'user-001',
   },
   {
@@ -20,7 +20,7 @@ export const tasks = [
     title: 'Prepare the component tree',
     assignee: 'Sam',
     status: 'todo',
-    dueDate: '2026-08-23',
+    dueDate: '2026-08-29',
     ownerId: 'user-001',
   },
   {
@@ -28,7 +28,7 @@ export const tasks = [
     title: 'Build the task board layout',
     assignee: 'Alex',
     status: 'in-progress',
-    dueDate: '2026-08-24',
+    dueDate: '2026-08-30',
     ownerId: 'user-001',
   },
   {
@@ -36,7 +36,7 @@ export const tasks = [
     title: 'Style the task cards',
     assignee: 'Maya',
     status: 'in-progress',
-    dueDate: '2026-08-25',
+    dueDate: '2026-08-31',
     ownerId: 'user-001',
   },
   {
@@ -44,7 +44,7 @@ export const tasks = [
     title: 'Configure route navigation',
     assignee: 'Sam',
     status: 'in-progress',
-    dueDate: '2026-08-26',
+    dueDate: '2026-09-01',
     ownerId: 'user-001',
   },
   {
@@ -52,7 +52,7 @@ export const tasks = [
     title: 'Scaffold the Vite application',
     assignee: 'Alex',
     status: 'done',
-    dueDate: '2026-08-18',
+    dueDate: '2026-09-02',
     ownerId: 'user-001',
   },
   {
@@ -60,7 +60,7 @@ export const tasks = [
     title: 'Define the frontend folders',
     assignee: 'Maya',
     status: 'done',
-    dueDate: '2026-08-18',
+    dueDate: '2026-09-03',
     ownerId: 'user-001',
   },
   {
@@ -68,7 +68,7 @@ export const tasks = [
     title: 'Connect the global stylesheet',
     assignee: 'Sam',
     status: 'done',
-    dueDate: '2026-08-19',
+    dueDate: '2026-09-04',
     ownerId: 'user-001',
   },
   {
@@ -76,7 +76,7 @@ export const tasks = [
     title: 'Review restricted workspace access',
     assignee: 'Jordan',
     status: 'todo',
-    dueDate: '2026-08-30',
+    dueDate: '2026-09-05',
     ownerId: 'user-002',
   },
 ];

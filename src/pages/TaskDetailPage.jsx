@@ -95,8 +95,8 @@ export default function TaskDetailPage({ isModal = false }) {
     );
   }
 
-  function handleSave(changes) {
-    updateTask(task.id, changes);
+  async function handleSave(changes) {
+    await updateTask(task.id, changes);
     setIsEditing(false);
   }
 
