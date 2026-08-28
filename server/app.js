@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import authRoutes from './routes/authRoutes.js';
+import boardRoutes from './routes/boardRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/boards', authenticate, boardRoutes);
 app.use('/api/tasks', authenticate, taskRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
