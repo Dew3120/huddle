@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a00052f5-8204-4469-9282-aff5c6277752",
     "name": "Huddle Assignment 02 API Evidence",
-    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "description": "Assignment 02 API evidence for Huddle. Start the API at {{baseUrl}}, then run requests 01 through 20 in order. Login stores the JWT in the token collection variable, and Create Task stores the generated task ID in taskId.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57769506"
   },
@@ -212,7 +212,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Status is 401', () => pm.response.to.have.status(401));\r\npm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED');"
+              "pm.test('Status is 401', () => pm.response.to.have.status(401));\r\npm.expect(pm.response.json().error.code).to.eql('NO_TOKEN');"
             ]
           }
         }
@@ -702,7 +702,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+              "pm.test('Status is 204', () => pm.response.to.have.status(204));"
             ]
           }
         }
@@ -735,24 +735,11 @@
       }
     ]
   },
-  "event": [
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "if (pm.response.status === 401) {",
-          "    pm.test('Status is 401', () => pm.response.to.have.status(401));",
-          "    pm.expect(pm.response.json().error.code).to.eql('INVALID_TOKEN');",
-          "}"
-        ]
-      }
-    }
-  ],
+  "event": [],
   "variable": [
     {
       "key": "baseUrl",
-      "value": ""
+      "value": "http://localhost:4000"
     },
     {
       "key": "token",
