@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
+import { queryTaskCollection } from '../utils/taskCollection.js';
 
 function publicBoard(board) {
   return {
@@ -9,11 +10,6 @@ function publicBoard(board) {
     name: board.name,
     taskCount: board.taskIds.length,
   };
-}
-
-function publicTask(task) {
-  const { ownerId, ...taskData } = task;
-  return taskData;
 }
 
 export function listBoards(user) {
@@ -31,7 +27,7 @@ export function createBoard(boardInput, user) {
   return publicBoard(boardRepository.create(board));
 }
 
-export function listBoardTasks(boardId, user) {
+export function listBoardTasks(boardId, query, user) {
   const board = boardRepository.findByIdForOwner(boardId, user.id);
 
   if (!board) {
@@ -40,8 +36,7 @@ export function listBoardTasks(boardId, user) {
 
   const tasks = taskRepository
     .findAllByOwner(user.id)
-    .filter((task) => board.taskIds.includes(task.id))
-    .map(publicTask);
+    .filter((task) => board.taskIds.includes(task.id));
 
-  return tasks;
+  return queryTaskCollection(tasks, query);
 }
