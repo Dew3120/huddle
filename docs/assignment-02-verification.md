@@ -2,7 +2,7 @@
 
 ## Owner
 
-R S Boklagama (Rovin)
+R S Bokalagama (Rovin)
 
 ## Purpose
 
