@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AddTaskForm from '../components/AddTaskForm.jsx';
 import Board from '../components/Board.jsx';
 import Button from '../components/Button/Button.jsx';
+import DeleteTaskDialog from '../components/DeleteTaskDialog.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import TaskFilters from '../components/TaskFilters.jsx';
@@ -11,6 +12,8 @@ import { filterTasks, getAssignees } from '../utils/filterTasks.js';
 
 export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [taskPendingDeletion, setTaskPendingDeletion] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const {
     tasks,
     loading,
@@ -46,13 +49,28 @@ export default function BoardPage() {
     filters.status ||
     filters.overdue;
 
-  async function handleDelete(taskId) {
-    if (window.confirm('Delete this task permanently?')) {
-      try {
-        await deleteTask(taskId);
-      } catch {
-        // TasksProvider exposes this failure above the board.
-      }
+  function handleDelete(taskId) {
+    const task = tasks.find((item) => item.id === taskId);
+
+    if (task) {
+      setTaskPendingDeletion(task);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!taskPendingDeletion || deleting) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteTask(taskPendingDeletion.id);
+      setTaskPendingDeletion(null);
+    } catch {
+      // TasksProvider exposes this failure above the board.
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -145,6 +163,15 @@ export default function BoardPage() {
             </section>
           )}
         </>
+      )}
+
+      {taskPendingDeletion && (
+        <DeleteTaskDialog
+          task={taskPendingDeletion}
+          deleting={deleting}
+          onCancel={() => setTaskPendingDeletion(null)}
+          onConfirm={confirmDelete}
+        />
       )}
     </main>
   );

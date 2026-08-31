@@ -95,7 +95,7 @@ export default function AuthPage() {
         <div className="auth-panel__copy">
           <p>Huddle workspace</p>
           <h1 id="auth-title">
-            {isLogin ? 'Sign in to SyncBoard' : 'Create your account'}
+            {isLogin ? 'Sign in to Huddle' : 'Create your Huddle account'}
           </h1>
           <span>Protected task boards powered by the live API.</span>
         </div>

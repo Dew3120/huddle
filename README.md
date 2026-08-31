@@ -294,7 +294,7 @@ huddle/
 |   |   +-- 01-health-200.png ... 20-task-delete-204.png
 |   +-- screenshots/
 |   |   +-- assignment-02/
-|   |       +-- 01-sign-in-live-api.png ... 09-backend-health-response.png
+|   |       +-- 01-sign-in-live-api.png ... 13-created-task-on-board.png
 |   +-- openapi.yaml
 +-- server/
 |   +-- app.js
@@ -345,6 +345,7 @@ huddle/
 |   |   +-- AppNavigation.jsx
 |   |   +-- Board.jsx
 |   |   +-- Column.jsx
+|   |   +-- DeleteTaskDialog.jsx
 |   |   +-- EditTaskForm.jsx
 |   |   +-- TaskCard.jsx
 |   |   +-- TaskFilters.jsx
@@ -384,11 +385,19 @@ All current UI images were captured against the live Express API, not local mock
 | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | ![Edit task screen connected to the API](docs/screenshots/assignment-02/06-edit-task-live-api.png) | ![Filtered task board using live API data](docs/screenshots/assignment-02/07-filtered-task-board.png) |
 
+| Validation feedback                                                                                               | Delete confirmation                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ![Client validation feedback before a write request](docs/screenshots/assignment-02/10-task-validation-error.png) | ![Accessible confirmation before deleting a task](docs/screenshots/assignment-02/11-delete-confirmation.png) |
+
+| Current 404 screen                                                                                | Successful live task creation                                                                                                |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| ![Current Huddle page-not-found screen](docs/screenshots/assignment-02/12-not-found-live-app.png) | ![Created task returned by the live API and shown on the board](docs/screenshots/assignment-02/13-created-task-on-board.png) |
+
 ### Backend reference and health
 
-| Swagger API reference                                                                                       | Health endpoint evidence                                                                                |
-| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| ![Swagger UI for the Huddle Assignment 02 API](docs/screenshots/assignment-02/08-swagger-api-reference.png) | ![Postman health endpoint returning 200](docs/screenshots/assignment-02/09-backend-health-response.png) |
+| Swagger task API reference                                                                                                | Executed health response                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| ![Swagger UI showing the complete Huddle task CRUD contract](docs/screenshots/assignment-02/08-swagger-api-reference.png) | ![Swagger execution showing the backend health response body](docs/screenshots/assignment-02/09-backend-health-response.png) |
 
 ## Postman Evidence Index
 
@@ -422,9 +431,9 @@ The committed collection and screenshots form a repeatable manual API test suite
 | Team member            | Assignment 02 role and contribution                                                                                                                                                          |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T D Gnanasena          | Project coordination, backend architecture, authentication, CRUD, validation, ownership, client/API integration, Swagger/OpenAPI, documentation, integration review, and release preparation |
-| J Charles              | Protected board API endpoints, board ownership checks, and board-task query integration through a reviewed feature branch and pull request                                                    |
+| J Charles              | Protected board API endpoints, board ownership checks, and board-task query integration through a reviewed feature branch and pull request                                                   |
 | K V Dilnath (Vinuka)   | Task search/filter contribution plus the exported Postman collection, request assertions, and API evidence screenshots                                                                       |
-| R S Bokalagama (Rovin) | Assignment 02 API verification runner, reproducible 17-check smoke-test coverage, and verification documentation                                                                              |
+| R S Bokalagama (Rovin) | Assignment 02 API verification runner, reproducible 17-check smoke-test coverage, and verification documentation                                                                             |
 
 The repository uses feature branches and pull requests so individual contributions remain visible in Git history. Do not squash or rewrite that history before submission.
 
