@@ -1,7 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import Button from './Button/Button.jsx';
 
-export default function AppNavigation({ theme, onToggleTheme }) {
+export default function AppNavigation({
+  theme,
+  user,
+  onLogout,
+  onToggleTheme,
+}) {
   const nextThemeLabel = theme === 'dark' ? 'Light mode' : 'Dark mode';
 
   return (
@@ -29,6 +34,17 @@ export default function AppNavigation({ theme, onToggleTheme }) {
         >
           New task
         </NavLink>
+
+        <span className="app-navigation__user">{user.email}</span>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="small"
+          onClick={onLogout}
+        >
+          Log out
+        </Button>
 
         <Button
           type="button"

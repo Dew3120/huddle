@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from './Button/Button.jsx';
+import { getErrorMessage, getFieldErrors } from '../utils/apiErrors.js';
 
 function getToday() {
   const date = new Date();
@@ -17,6 +18,8 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
     dueDate: task.dueDate,
   });
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const today = getToday();
 
@@ -32,6 +35,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
       ...current,
       [name]: '',
     }));
+    setSubmitError('');
   }
 
   function validateForm() {
@@ -59,7 +63,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = validateForm();
@@ -69,11 +73,21 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
       return;
     }
 
-    onSave({
-      title: form.title.trim(),
-      assignee: form.assignee.trim(),
-      dueDate: form.dueDate,
-    });
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      await onSave({
+        title: form.title.trim(),
+        assignee: form.assignee.trim(),
+        dueDate: form.dueDate,
+      });
+    } catch (error) {
+      setErrors(getFieldErrors(error));
+      setSubmitError(getErrorMessage(error, 'Unable to save task.'));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -138,12 +152,25 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
         )}
       </label>
 
-     <div className="task-edit-form__actions">
-  <Button type="button" variant="secondary" onClick={onCancel}>
-    Cancel
-  </Button>
-  <Button type="submit">Save changes</Button>
-</div>
+      {submitError && (
+        <p className="form-error task-form__submit-error" role="alert">
+          {submitError}
+        </p>
+      )}
+
+      <div className="task-edit-form__actions">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onCancel}
+          disabled={submitting}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Saving...' : 'Save changes'}
+        </Button>
+      </div>
     </form>
   );
 }

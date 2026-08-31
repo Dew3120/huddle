@@ -1,0 +1,583 @@
+openapi: 3.1.0
+info:
+  title: Huddle Assignment 02 API
+  version: 2.0.0
+  description: |
+    REST API for Huddle, a collaborative task board built for Assignment 02.
+    Authentication uses a short-lived JWT in the Authorization header. Data is
+    intentionally stored in memory until the MongoDB milestone.
+  contact:
+    name: Huddle Team
+    url: https://github.com/Dew3120/huddle
+servers:
+  - url: http://localhost:4000
+    description: Local Express API
+tags:
+  - name: Health
+  - name: Authentication
+  - name: Boards
+  - name: Tasks
+security:
+  - bearerAuth: []
+paths:
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Check API health
+      security: []
+      responses:
+        "200":
+          description: API is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          $ref: "#/components/responses/EmailConflict"
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Exchange credentials for a JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authentication succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/BadCredentials"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Return the authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/boards:
+    get:
+      tags: [Boards]
+      summary: List boards visible to the authenticated user
+      responses:
+        "200":
+          description: Board collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoardListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Boards]
+      summary: Create a board
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBoardInput"
+      responses:
+        "201":
+          description: Board created
+          headers:
+            Location:
+              description: URL of the created board
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoardResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/boards/{boardId}/tasks:
+    get:
+      tags: [Boards]
+      summary: List tasks on an owned board
+      description: |
+        Returns 404 for a missing or inaccessible board so the API does not
+        disclose whether another user's board exists.
+      parameters:
+        - $ref: "#/components/parameters/BoardId"
+        - $ref: "#/components/parameters/Status"
+        - $ref: "#/components/parameters/Assignee"
+        - $ref: "#/components/parameters/Sort"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Filtered board task collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/BoardNotFound"
+
+  /api/tasks:
+    get:
+      tags: [Tasks]
+      summary: List the authenticated user's tasks
+      parameters:
+        - $ref: "#/components/parameters/Status"
+        - $ref: "#/components/parameters/Assignee"
+        - $ref: "#/components/parameters/Sort"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Filtered task collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskInput"
+      responses:
+        "201":
+          description: Task created
+          headers:
+            Location:
+              description: URL of the created task
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/tasks/{taskId}:
+    parameters:
+      - $ref: "#/components/parameters/TaskId"
+    get:
+      tags: [Tasks]
+      summary: Get one owned task
+      responses:
+        "200":
+          description: Task found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/TaskNotFound"
+    patch:
+      tags: [Tasks]
+      summary: Update fields on an owned task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskInput"
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/TaskNotFound"
+    delete:
+      tags: [Tasks]
+      summary: Delete an owned task
+      responses:
+        "204":
+          description: Task deleted; response body is empty
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/TaskNotFound"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    BoardId:
+      name: boardId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: board-001
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: task-001
+    Status:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [todo, in-progress, done]
+    Assignee:
+      name: assignee
+      in: query
+      schema:
+        type: string
+      example: Alex
+    Sort:
+      name: sort
+      in: query
+      description: Prefix a supported field with a minus sign for descending order.
+      schema:
+        type: string
+        enum:
+          [
+            title,
+            -title,
+            assignee,
+            -assignee,
+            status,
+            -status,
+            dueDate,
+            -dueDate,
+          ]
+        default: dueDate
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    Health:
+      type: object
+      required: [status, uptime]
+      properties:
+        status:
+          type: string
+          const: ok
+        uptime:
+          type: number
+          minimum: 0
+    HealthResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Health"
+    User:
+      type: object
+      required: [id, email]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+    UserResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/User"
+    RegisterInput:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          format: password
+    LoginInput:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          format: password
+    AuthResult:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: Signed JWT that expires after one hour
+        user:
+          $ref: "#/components/schemas/User"
+    AuthResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AuthResult"
+    Board:
+      type: object
+      required: [id, name, taskCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        taskCount:
+          type: integer
+          minimum: 0
+    BoardResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Board"
+    BoardListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Board"
+    CreateBoardInput:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 3
+    Task:
+      type: object
+      required: [id, title, assignee, status, dueDate]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          minLength: 3
+        assignee:
+          type: string
+        status:
+          type: string
+          enum: [todo, in-progress, done]
+        dueDate:
+          type: string
+          format: date
+    TaskResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Task"
+    TaskListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    PaginationMeta:
+      type: object
+      required: [page, limit, total]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+    CreateTaskInput:
+      type: object
+      additionalProperties: false
+      required: [title, assignee, dueDate]
+      properties:
+        title:
+          type: string
+          minLength: 3
+        assignee:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [todo, in-progress, done]
+          default: todo
+        dueDate:
+          type: string
+          format: date
+    UpdateTaskInput:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 3
+        assignee:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [todo, in-progress, done]
+        dueDate:
+          type: string
+          format: date
+    ValidationDetail:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ApiError:
+      type: object
+      required: [message, code, requestId]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        requestId:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationDetail"
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiError"
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing, invalid or expired bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    BadCredentials:
+      description: Email or password is incorrect
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    EmailConflict:
+      description: Email is already registered
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: Login rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    TaskNotFound:
+      description: Task is missing or inaccessible
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    BoardNotFound:
+      description: Board is missing or inaccessible
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

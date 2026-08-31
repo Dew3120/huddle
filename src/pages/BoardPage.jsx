@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AddTaskForm from '../components/AddTaskForm.jsx';
 import Board from '../components/Board.jsx';
 import Button from '../components/Button/Button.jsx';
+import DeleteTaskDialog from '../components/DeleteTaskDialog.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import TaskFilters from '../components/TaskFilters.jsx';
@@ -11,10 +12,13 @@ import { filterTasks, getAssignees } from '../utils/filterTasks.js';
 
 export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [taskPendingDeletion, setTaskPendingDeletion] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const {
     tasks,
     loading,
     error,
+    mutationError,
     addTask,
     deleteTask,
     moveTask,
@@ -46,8 +50,35 @@ export default function BoardPage() {
     filters.overdue;
 
   function handleDelete(taskId) {
-    if (window.confirm('Delete this task permanently?')) {
-      deleteTask(taskId);
+    const task = tasks.find((item) => item.id === taskId);
+
+    if (task) {
+      setTaskPendingDeletion(task);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!taskPendingDeletion || deleting) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteTask(taskPendingDeletion.id);
+      setTaskPendingDeletion(null);
+    } catch {
+      // TasksProvider exposes this failure above the board.
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function handleMove(taskId, direction) {
+    try {
+      await moveTask(taskId, direction);
+    } catch {
+      // TasksProvider exposes this failure above the board.
     }
   }
 
@@ -91,6 +122,12 @@ export default function BoardPage() {
         <>
           <AddTaskForm onAdd={addTask} />
 
+          {mutationError && (
+            <p className="inline-error" role="alert">
+              {mutationError}
+            </p>
+          )}
+
           <TaskFilters
             filters={filters}
             assignees={assignees}
@@ -104,7 +141,7 @@ export default function BoardPage() {
             <Board
               tasks={visibleTasks}
               onDelete={handleDelete}
-              onMove={moveTask}
+              onMove={handleMove}
             />
           ) : (
             <section className="empty-state" role="status">
@@ -126,6 +163,15 @@ export default function BoardPage() {
             </section>
           )}
         </>
+      )}
+
+      {taskPendingDeletion && (
+        <DeleteTaskDialog
+          task={taskPendingDeletion}
+          deleting={deleting}
+          onCancel={() => setTaskPendingDeletion(null)}
+          onConfirm={confirmDelete}
+        />
       )}
     </main>
   );

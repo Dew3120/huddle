@@ -1,5 +1,10 @@
 import { useEffect, useReducer, useState } from 'react';
-import { getTasks } from '../api/tasks.js';
+import {
+  createTask,
+  deleteTask as deleteTaskRequest,
+  getTasks,
+  updateTask as updateTaskRequest,
+} from '../api/tasks.js';
 import { tasksReducer } from '../utils/tasksReducer.js';
 import { TasksContext } from './TasksContext.js';
 
@@ -9,6 +14,7 @@ export default function TasksProvider({ children }) {
   const [tasks, dispatch] = useReducer(tasksReducer, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mutationError, setMutationError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
 
   useEffect(() => {
@@ -41,33 +47,69 @@ export default function TasksProvider({ children }) {
     };
   }, [reloadCount]);
 
-  function addTask(taskDetails) {
-    dispatch({
-      type: 'added',
-      task: {
-        id: crypto.randomUUID(),
+  async function addTask(taskDetails) {
+    setMutationError('');
+
+    try {
+      const task = await createTask({
         ...taskDetails,
         status: 'todo',
-      },
-    });
+      });
+
+      dispatch({
+        type: 'added',
+        task,
+      });
+
+      return task;
+    } catch (requestError) {
+      setMutationError(
+        requestError.message || 'Unable to create the task.',
+      );
+      throw requestError;
+    }
   }
 
-  function updateTask(taskId, changes) {
-    dispatch({
-      type: 'updated',
-      id: taskId,
-      changes,
-    });
+  async function updateTask(taskId, changes) {
+    setMutationError('');
+
+    try {
+      const task = await updateTaskRequest(taskId, changes);
+
+      dispatch({
+        type: 'updated',
+        id: taskId,
+        changes: task,
+      });
+
+      return task;
+    } catch (requestError) {
+      setMutationError(
+        requestError.message || 'Unable to update the task.',
+      );
+      throw requestError;
+    }
   }
 
-  function deleteTask(taskId) {
-    dispatch({
-      type: 'deleted',
-      id: taskId,
-    });
+  async function deleteTask(taskId) {
+    setMutationError('');
+
+    try {
+      await deleteTaskRequest(taskId);
+
+      dispatch({
+        type: 'deleted',
+        id: taskId,
+      });
+    } catch (requestError) {
+      setMutationError(
+        requestError.message || 'Unable to delete the task.',
+      );
+      throw requestError;
+    }
   }
 
-  function moveTask(taskId, direction) {
+  async function moveTask(taskId, direction) {
     const task = tasks.find((item) => item.id === taskId);
 
     if (!task) {
@@ -79,9 +121,7 @@ export default function TasksProvider({ children }) {
     const nextStatus = statusOrder[currentIndex + change];
 
     if (nextStatus) {
-      dispatch({
-        type: 'moved',
-        id: taskId,
+      await updateTask(taskId, {
         status: nextStatus,
       });
     }
@@ -95,6 +135,7 @@ export default function TasksProvider({ children }) {
     tasks,
     loading,
     error,
+    mutationError,
     addTask,
     updateTask,
     deleteTask,
