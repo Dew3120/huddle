@@ -419,12 +419,12 @@ The committed collection and screenshots form a repeatable manual API test suite
 
 ## Team Roles and Contributions
 
-| Team member           | Assignment 02 role and contribution                                                                                                                                                          |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T D Gnanasena         | Project coordination, backend architecture, authentication, CRUD, validation, ownership, client/API integration, Swagger/OpenAPI, documentation, integration review, and release preparation |
-| J Charles             | Reusable `Button` component and shared button styling, integrated through a reviewed feature branch and pull request                                                                         |
-| K V Dilnath (Vinuka)  | Task search/filter contribution plus the exported Postman collection, request assertions, and API evidence screenshots                                                                       |
-| R S Boklagama (Rovin) | Assigned report/evidence review, screenshot/resource checking, and final submission presentation support                                                                                     |
+| Team member            | Assignment 02 role and contribution                                                                                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T D Gnanasena          | Project coordination, backend architecture, authentication, CRUD, validation, ownership, client/API integration, Swagger/OpenAPI, documentation, integration review, and release preparation |
+| J Charles              | Protected board API endpoints, board ownership checks, and board-task query integration through a reviewed feature branch and pull request                                                    |
+| K V Dilnath (Vinuka)   | Task search/filter contribution plus the exported Postman collection, request assertions, and API evidence screenshots                                                                       |
+| R S Bokalagama (Rovin) | Assignment 02 API verification runner, reproducible 17-check smoke-test coverage, and verification documentation                                                                              |
 
 The repository uses feature branches and pull requests so individual contributions remain visible in Git history. Do not squash or rewrite that history before submission.
 
