@@ -1,7 +1,7 @@
 import * as taskService from '../services/taskService.js';
 
 export function list(req, res) {
-  const result = taskService.listTasks(req.query, req.user);
+  const result = taskService.listTasks(req.validated.query, req.user);
 
   res.json(result);
 }

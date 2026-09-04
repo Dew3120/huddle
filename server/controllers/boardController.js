@@ -15,5 +15,11 @@ export function create(req, res) {
 }
 
 export function listTasks(req, res) {
-  res.json(boardService.listBoardTasks(req.params.id, req.query, req.user));
+  res.json(
+    boardService.listBoardTasks(
+      req.params.id,
+      req.validated.query,
+      req.user,
+    ),
+  );
 }
