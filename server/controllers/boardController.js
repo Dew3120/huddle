@@ -1,4 +1,5 @@
 import * as boardService from '../services/boardService.js';
+import { assertResourceId } from '../utils/resourceId.js';
 
 export async function list(req, res) {
   res.json({
@@ -15,6 +16,8 @@ export async function create(req, res) {
 }
 
 export async function listTasks(req, res) {
+  assertResourceId(req.params.id, 'Board');
+
   res.json(
     await boardService.listBoardTasks(
       req.params.id,

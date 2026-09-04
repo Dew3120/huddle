@@ -1,4 +1,5 @@
 import * as taskService from '../services/taskService.js';
+import { assertResourceId } from '../utils/resourceId.js';
 
 export async function list(req, res) {
   const result = await taskService.listTasks(req.validated.query, req.user);
@@ -7,6 +8,7 @@ export async function list(req, res) {
 }
 
 export async function getOne(req, res) {
+  assertResourceId(req.params.id, 'Task');
   const task = await taskService.getTaskById(req.params.id, req.user);
 
   res.json({
@@ -26,6 +28,7 @@ export async function create(req, res) {
 }
 
 export async function update(req, res) {
+  assertResourceId(req.params.id, 'Task');
   const task = await taskService.updateTask(req.params.id, req.body, req.user);
 
   res.json({
@@ -34,6 +37,7 @@ export async function update(req, res) {
 }
 
 export async function remove(req, res) {
+  assertResourceId(req.params.id, 'Task');
   await taskService.deleteTask(req.params.id, req.user);
 
   res.status(204).end();
