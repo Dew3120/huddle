@@ -11,6 +11,7 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 - [Milestone Status](#milestone-status)
 - [Assignment 02 Highlights](#assignment-02-highlights)
 - [Architecture](#architecture)
+- [Milestone 3 Data Model](#milestone-3-data-model)
 - [Technology Stack](#technology-stack)
 - [Quick Start](#quick-start)
 - [API Documentation](#api-documentation)
@@ -33,8 +34,8 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 | Milestone          | Deliverable                                                | Status                                                           |
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | Assignment 01 / M1 | Static React front-end skeleton                            | Complete and tagged as `assignment-01-static-front-end-skeleton` |
-| Assignment 02 / M2 | Working REST API with mock data integrated with the client | Complete on `feature/session-02-backend-foundation`              |
-| M3                 | MongoDB persistence and offline support                    | Planned                                                          |
+| Assignment 02 / M2 | Working REST API with mock data integrated with the client | Complete and tagged as `assignment-02-working-rest-api`          |
+| M3                 | MongoDB persistence and offline support                    | In progress on `feature/session-03-database-persistence`         |
 | M4                 | Automated client/server tests and CI                       | Planned                                                          |
 | M5                 | Real-time sync, Docker, deployment, and final launch       | Planned                                                          |
 
@@ -82,6 +83,23 @@ The controller is the HTTP boundary. It reads `req`, calls a service, and shapes
 
 The middleware order in `server/app.js` is deliberate: request IDs and logging, security and CORS, JSON parsing, public authentication routes with rate limiting on login, protected board/task routes, the catch-all 404 handler, and finally the central error handler.
 
+## Milestone 3 Data Model
+
+Huddle models documents from the application reads they must support. The main screen loads an owned board and a filterable, sortable, paginated task collection. Tasks change much more frequently than board metadata and can grow without a practical fixed limit, so tasks remain separate documents rather than an unbounded array embedded inside a board.
+
+| Data              | Embed or reference decision                                  | Reason                                                                                                  |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Users             | Separate collection; referenced by `ownerId`                 | Users are authenticated and queried independently, and one user can own several resources.              |
+| Boards            | Separate collection                                           | A board has its own identity, ownership boundary, and independently loaded summary.                     |
+| Board columns     | Use the bounded task status values for now; embed if custom columns are introduced | The current three columns are fixed and always rendered with the board. A future custom list stays small and bounded. |
+| Tasks             | Separate collection; reference a board with `boardId`        | Tasks are numerous, updated often, and queried independently by status, assignee, sort order, and page. |
+| Task ownership    | Store `ownerId` on each task                                  | Ownership is stable and lets repository queries enforce authorization without returning foreign data.  |
+| Activity entries  | Future separate collection                                    | Audit history grows continuously and should not enlarge the board or task document on every change.     |
+
+The in-memory data has already been aligned with this design: each task carries `boardId`, boards no longer contain task-ID arrays, and board task counts are calculated through the task repository. The service and controller contracts remain unchanged, so the next step can replace only the repository implementation with Mongoose models.
+
+Planned MongoDB indexes follow the same access patterns: a unique index on user email, an ownership index on boards, and a compound task index beginning with `ownerId` and `boardId` before common filters such as `status` and `dueDate`. Indexes will be finalized against real query plans during the MongoDB implementation.
+
 ## Technology Stack
 
 | Layer              | Technology                                                  |
@@ -109,8 +127,8 @@ The middleware order in `server/app.js` is deliberate: request IDs and logging, 
 ```powershell
 git clone https://github.com/Dew3120/huddle.git
 cd huddle
-git checkout feature/session-02-backend-foundation
-npm install
+git checkout main
+npm ci
 ```
 
 ### 2. Configure the API
@@ -188,10 +206,10 @@ The Postman collection uses collection variables for `baseUrl`, `token`, and `ta
 | `GET /api/auth/me`          | Bearer JWT     | Return the current user        | `200`   | `401`               |
 | `GET /api/boards`           | Bearer JWT     | List the user's boards         | `200`   | `401`               |
 | `POST /api/boards`          | Bearer JWT     | Create a board                 | `201`   | `400`, `401`        |
-| `GET /api/boards/:id/tasks` | Bearer JWT     | List tasks on an owned board   | `200`   | `401`, `404`        |
-| `GET /api/tasks`            | Bearer JWT     | List tasks                     | `200`   | `401`               |
+| `GET /api/boards/:id/tasks` | Bearer JWT     | List tasks on an owned board   | `200`   | `400`, `401`, `404` |
+| `GET /api/tasks`            | Bearer JWT     | List tasks                     | `200`   | `400`, `401`        |
 | `GET /api/tasks/:id`        | Bearer JWT     | Read one task                  | `200`   | `401`, `404`        |
-| `POST /api/tasks`           | Bearer JWT     | Create a task                  | `201`   | `400`, `401`, `404` |
+| `POST /api/tasks`           | Bearer JWT     | Create a task                  | `201`   | `400`, `401`        |
 | `PATCH /api/tasks/:id`      | Bearer JWT     | Update task fields or status   | `200`   | `400`, `401`, `404` |
 | `DELETE /api/tasks/:id`     | Bearer JWT     | Delete a task                  | `204`   | `401`, `404`        |
 
@@ -487,20 +505,16 @@ The final Assignment 02 snapshot is identified by:
 assignment-02-working-rest-api
 ```
 
-After all team pull requests and final evidence are merged, the release owner creates and pushes the annotated tag:
-
-```powershell
-git checkout feature/session-02-backend-foundation
-git pull origin feature/session-02-backend-foundation
-git tag -a assignment-02-working-rest-api -m "Assignment 02 - Working REST APIs integrated with frontend"
-git push origin assignment-02-working-rest-api
-```
+The annotated tag was created from the merged Assignment 02 snapshot on `main`. It is intentionally left unchanged while later milestones continue on new branches.
 
 To inspect that exact submission later:
 
 ```powershell
+git fetch --tags
 git checkout assignment-02-working-rest-api
 ```
+
+Return to current development with `git checkout main` after inspecting the tag.
 
 ## Roadmap
 
