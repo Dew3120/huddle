@@ -8,6 +8,18 @@ export function findAllByOwner(ownerId) {
   return tasks.filter((task) => task.ownerId === ownerId);
 }
 
+export function findAllByBoardForOwner(boardId, ownerId) {
+  return tasks.filter(
+    (task) => task.boardId === boardId && task.ownerId === ownerId,
+  );
+}
+
+export function countByBoardForOwner(boardId, ownerId) {
+  return tasks.filter(
+    (task) => task.boardId === boardId && task.ownerId === ownerId,
+  ).length;
+}
+
 export function findById(id) {
   return tasks.find((task) => task.id === id) ?? null;
 }

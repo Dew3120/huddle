@@ -1,7 +1,22 @@
 import { randomUUID } from 'node:crypto';
+import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
 import { publicTask, queryTaskCollection } from '../utils/taskCollection.js';
+
+function findOrCreateDefaultBoard(user) {
+  const existingBoard = boardRepository.findFirstByOwner(user.id);
+
+  if (existingBoard) {
+    return existingBoard;
+  }
+
+  return boardRepository.create({
+    id: randomUUID(),
+    name: 'My Task Board',
+    ownerId: user.id,
+  });
+}
 
 export function listTasks(query = {}, user) {
   return queryTaskCollection(taskRepository.findAllByOwner(user.id), query);
@@ -18,9 +33,11 @@ export function getTaskById(id, user) {
 }
 
 export function createTask(taskInput, user) {
+  const board = findOrCreateDefaultBoard(user);
   const task = {
     id: randomUUID(),
     ...taskInput,
+    boardId: board.id,
     ownerId: user.id,
   };
 

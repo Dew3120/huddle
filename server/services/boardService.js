@@ -4,16 +4,21 @@ import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
 import { queryTaskCollection } from '../utils/taskCollection.js';
 
-function publicBoard(board) {
+function publicBoard(board, taskCount) {
   return {
     id: board.id,
     name: board.name,
-    taskCount: board.taskIds.length,
+    taskCount,
   };
 }
 
 export function listBoards(user) {
-  return boardRepository.findAllByOwner(user.id).map(publicBoard);
+  return boardRepository.findAllByOwner(user.id).map((board) =>
+    publicBoard(
+      board,
+      taskRepository.countByBoardForOwner(board.id, user.id),
+    ),
+  );
 }
 
 export function createBoard(boardInput, user) {
@@ -21,10 +26,9 @@ export function createBoard(boardInput, user) {
     id: randomUUID(),
     name: boardInput.name,
     ownerId: user.id,
-    taskIds: [],
   };
 
-  return publicBoard(boardRepository.create(board));
+  return publicBoard(boardRepository.create(board), 0);
 }
 
 export function listBoardTasks(boardId, query, user) {
@@ -34,9 +38,10 @@ export function listBoardTasks(boardId, query, user) {
     throw new NotFoundError('Board');
   }
 
-  const tasks = taskRepository
-    .findAllByOwner(user.id)
-    .filter((task) => board.taskIds.includes(task.id));
+  const tasks = taskRepository.findAllByBoardForOwner(
+    board.id,
+    user.id,
+  );
 
   return queryTaskCollection(tasks, query);
 }
