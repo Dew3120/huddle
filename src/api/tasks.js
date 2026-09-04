@@ -1,5 +1,7 @@
 import { request } from './client.js';
 
+const TASK_PAGE_SIZE = 100;
+
 function withQuery(path, params = {}) {
   const searchParams = new URLSearchParams();
 
@@ -15,9 +17,26 @@ function withQuery(path, params = {}) {
 }
 
 export async function getTasks(params = {}) {
-  const response = await request(withQuery('/api/tasks', params));
+  const tasks = [];
+  let page = 1;
 
-  return response.data;
+  while (true) {
+    const response = await request(
+      withQuery('/api/tasks', {
+        ...params,
+        page,
+        limit: TASK_PAGE_SIZE,
+      }),
+    );
+
+    tasks.push(...response.data);
+
+    if (response.data.length === 0 || tasks.length >= response.meta.total) {
+      return tasks;
+    }
+
+    page += 1;
+  }
 }
 
 export async function createTask(task) {
