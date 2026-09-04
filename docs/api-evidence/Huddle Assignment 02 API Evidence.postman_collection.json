@@ -283,7 +283,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Status is 200', () => pm.response.to.have.status(200));\r\nconst json = pm.response.json();\r\npm.expect(json.data.tasks).to.be.an('array');"
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));\r\nconst json = pm.response.json();\r\npm.expect(json.data).to.be.an('array');"
             ]
           }
         }
