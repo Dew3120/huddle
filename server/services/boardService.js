@@ -1,7 +1,7 @@
 import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
-import { queryTaskCollection } from '../utils/taskCollection.js';
+import { publicTask } from '../utils/taskCollection.js';
 
 function publicBoard(board, taskCount) {
   const value = board.toJSON ? board.toJSON() : board;
@@ -21,7 +21,7 @@ export async function listBoards(user) {
       const boardId = board.toJSON().id;
       const taskCount = await taskRepository.countByBoardForOwner(
         boardId,
-        user.id,
+        user.databaseId,
       );
 
       return publicBoard(board, taskCount);
@@ -54,10 +54,14 @@ export async function listBoardTasks(boardId, query, user) {
     throw new NotFoundError('Board');
   }
 
-  const tasks = await taskRepository.findAllByBoardForOwner(
-    board.toJSON().id,
-    user.id,
-  );
+  const result = await taskRepository.findPageByBoard(board._id, query);
 
-  return queryTaskCollection(tasks, query);
+  return {
+    data: result.tasks.map(publicTask),
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total: result.total,
+    },
+  };
 }

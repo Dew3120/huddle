@@ -1,8 +1,7 @@
-import { randomUUID } from 'node:crypto';
 import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
-import { publicTask, queryTaskCollection } from '../utils/taskCollection.js';
+import { publicTask } from '../utils/taskCollection.js';
 
 async function findOrCreateDefaultBoard(user) {
   const existingBoard = await boardRepository.findFirstByOwner(user.databaseId);
@@ -23,12 +22,21 @@ async function findOrCreateDefaultBoard(user) {
   });
 }
 
-export function listTasks(query = {}, user) {
-  return queryTaskCollection(taskRepository.findAllByOwner(user.id), query);
+export async function listTasks(query = {}, user) {
+  const result = await taskRepository.findPageByOwner(user.databaseId, query);
+
+  return {
+    data: result.tasks.map(publicTask),
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total: result.total,
+    },
+  };
 }
 
-export function getTaskById(id, user) {
-  const task = taskRepository.findByIdForOwner(id, user.id);
+export async function getTaskById(id, user) {
+  const task = await taskRepository.findByIdForOwner(id, user.databaseId);
 
   if (!task) {
     throw new NotFoundError('Task');
@@ -39,19 +47,20 @@ export function getTaskById(id, user) {
 
 export async function createTask(taskInput, user) {
   const board = await findOrCreateDefaultBoard(user);
-  const boardId = board.toJSON().id;
   const task = {
-    id: randomUUID(),
     ...taskInput,
-    boardId,
-    ownerId: user.id,
+    boardId: board._id,
   };
 
-  return publicTask(taskRepository.create(task));
+  return publicTask(await taskRepository.create(task));
 }
 
-export function updateTask(id, updates, user) {
-  const task = taskRepository.updateForOwner(id, user.id, updates);
+export async function updateTask(id, updates, user) {
+  const task = await taskRepository.updateForOwner(
+    id,
+    user.databaseId,
+    updates,
+  );
 
   if (!task) {
     throw new NotFoundError('Task');
@@ -60,8 +69,11 @@ export function updateTask(id, updates, user) {
   return publicTask(task);
 }
 
-export function deleteTask(id, user) {
-  const wasDeleted = taskRepository.removeForOwner(id, user.id);
+export async function deleteTask(id, user) {
+  const wasDeleted = await taskRepository.removeForOwner(
+    id,
+    user.databaseId,
+  );
 
   if (!wasDeleted) {
     throw new NotFoundError('Task');

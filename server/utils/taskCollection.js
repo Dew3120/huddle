@@ -1,6 +1,10 @@
 const allowedSortFields = ['title', 'assignee', 'status', 'dueDate'];
 
 export function publicTask(task) {
+  if (task.toJSON) {
+    return task.toJSON();
+  }
+
   const { ownerId, ...taskData } = task;
   return taskData;
 }
