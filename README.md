@@ -89,16 +89,16 @@ Huddle models documents from the application reads they must support. The main s
 
 | Data              | Embed or reference decision                                  | Reason                                                                                                  |
 | ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Users             | Separate collection; referenced by `ownerId`                 | Users are authenticated and queried independently, and one user can own several resources.              |
+| Users             | Separate collection; referenced from boards and tasks        | Users are authenticated and queried independently, and one user can own or join several boards.         |
 | Boards            | Separate collection                                           | A board has its own identity, ownership boundary, and independently loaded summary.                     |
-| Board columns     | Use the bounded task status values for now; embed if custom columns are introduced | The current three columns are fixed and always rendered with the board. A future custom list stays small and bounded. |
+| Board columns     | Embed inside the board document                              | The three columns are small, bounded, and always read with the board.                                        |
 | Tasks             | Separate collection; reference a board with `boardId`        | Tasks are numerous, updated often, and queried independently by status, assignee, sort order, and page. |
-| Task ownership    | Store `ownerId` on each task                                  | Ownership is stable and lets repository queries enforce authorization without returning foreign data.  |
-| Activity entries  | Future separate collection                                    | Audit history grows continuously and should not enlarge the board or task document on every change.     |
+| Task ownership    | Resolve through `boardId` and the board owner or members      | The board remains the source of truth for access instead of duplicating membership on every task.       |
+| Activity entries  | Separate collection; reference the board, task, and user      | Activity grows continuously and should not enlarge the board or task document on every change.          |
 
-The in-memory data has already been aligned with this design: each task carries `boardId`, boards no longer contain task-ID arrays, and board task counts are calculated through the task repository. The service and controller contracts remain unchanged, so the next step can replace only the repository implementation with Mongoose models.
+The in-memory data already follows the board-task reference: each task carries `boardId`, boards no longer contain task-ID arrays, and the task repository calculates board counts. It still keeps the M2 `ownerId` field until the MongoDB repositories replace that ownership lookup. The local MongoDB practice data embeds board columns and stores tasks and activity in separate collections. Each practice task includes a description, `version`, `createdAt`, and `updatedAt`.
 
-Planned MongoDB indexes follow the same access patterns: a unique index on user email, an ownership index on boards, and a compound task index beginning with `ownerId` and `boardId` before common filters such as `status` and `dueDate`. Indexes will be finalized against real query plans during the MongoDB implementation.
+The local task collection has a compound index on `boardId`, `status`, and `dueDate`. Its explain plan reports `IXSCAN` for the board status query. Additional indexes will be added with the Mongoose models when the application starts using MongoDB.
 
 ## Technology Stack
 
