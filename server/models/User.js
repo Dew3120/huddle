@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     versionKey: false,
     toJSON: {
       transform(_document, value) {
-        value.id = value._id.toString();
+        value.id = value.legacyId ?? value._id.toString();
         delete value._id;
         delete value.legacyId;
         delete value.passwordHash;

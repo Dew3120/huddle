@@ -21,9 +21,9 @@ export async function create({ email, passwordHash }) {
 }
 
 export function publicUser(user) {
-  const value = user.toObject ? user.toObject() : user;
+  const value = user.toJSON ? user.toJSON() : user;
   const publicValue = {
-    id: value.legacyId ?? value._id.toString(),
+    id: value.id,
     email: value.email,
   };
 
@@ -32,7 +32,7 @@ export function publicUser(user) {
   }
 
   Object.defineProperty(publicValue, 'databaseId', {
-    value: value._id.toString(),
+    value: user._id?.toString() ?? value.id,
     enumerable: false,
   });
 
