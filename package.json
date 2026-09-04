@@ -6,6 +6,7 @@
     "dev": "vite",
     "dev:server": "node --watch server/server.js",
     "start:server": "node server/server.js",
+    "seed": "node server/db/seed.js",
     "build": "vite build",
     "preview": "vite preview",
     "verify:assignment-02": "node scripts/verify-assignment-02.mjs"
