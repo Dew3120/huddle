@@ -4,17 +4,22 @@ import * as taskRepository from '../repositories/taskRepository.js';
 import { NotFoundError } from '../utils/AppError.js';
 import { publicTask, queryTaskCollection } from '../utils/taskCollection.js';
 
-function findOrCreateDefaultBoard(user) {
-  const existingBoard = boardRepository.findFirstByOwner(user.id);
+async function findOrCreateDefaultBoard(user) {
+  const existingBoard = await boardRepository.findFirstByOwner(user.databaseId);
 
   if (existingBoard) {
     return existingBoard;
   }
 
   return boardRepository.create({
-    id: randomUUID(),
     name: 'My Task Board',
-    ownerId: user.id,
+    ownerId: user.databaseId,
+    members: [{ userId: user.databaseId, role: 'owner' }],
+    columns: [
+      { title: 'To Do', position: 0 },
+      { title: 'In Progress', position: 1 },
+      { title: 'Done', position: 2 },
+    ],
   });
 }
 
@@ -32,12 +37,13 @@ export function getTaskById(id, user) {
   return publicTask(task);
 }
 
-export function createTask(taskInput, user) {
-  const board = findOrCreateDefaultBoard(user);
+export async function createTask(taskInput, user) {
+  const board = await findOrCreateDefaultBoard(user);
+  const boardId = board.toJSON().id;
   const task = {
     id: randomUUID(),
     ...taskInput,
-    boardId: board.id,
+    boardId,
     ownerId: user.id,
   };
 

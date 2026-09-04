@@ -14,8 +14,8 @@ export function getOne(req, res) {
   });
 }
 
-export function create(req, res) {
-  const task = taskService.createTask(req.body, req.user);
+export async function create(req, res) {
+  const task = await taskService.createTask(req.body, req.user);
 
   res
     .status(201)
