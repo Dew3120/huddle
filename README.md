@@ -39,7 +39,7 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 | M4                 | Automated client/server tests and CI                       | Planned                                                          |
 | M5                 | Real-time sync, Docker, deployment, and final launch       | Planned                                                          |
 
-Assignment 02 intentionally keeps server data in memory. MongoDB belongs to the next milestone, so a server restart resets users, boards, and tasks to their seeded state.
+The tagged Assignment 02 release intentionally keeps server data in memory. Current Milestone 3 development uses MongoDB through Mongoose, while the Assignment 02 tag remains unchanged for marking.
 
 ## Assignment 02 Highlights
 
@@ -76,7 +76,10 @@ src/api client  -- Authorization: Bearer <JWT> -->  Express route
                                                    Repository
                                                         |
                                                         v
-                                              In-memory mock data
+                                                  Mongoose models
+                                                        |
+                                                        v
+                                                     MongoDB
 ```
 
 The controller is the HTTP boundary. It reads `req`, calls a service, and shapes the response. Services hold business rules, ownership checks, filtering, sorting, and pagination. Repositories own data access. No `req` or `res` object is passed below the controller layer.
@@ -96,9 +99,9 @@ Huddle models documents from the application reads they must support. The main s
 | Task ownership    | Resolve through `boardId` and the board owner or members      | The board remains the source of truth for access instead of duplicating membership on every task.       |
 | Activity entries  | Separate collection; reference the board, task, and user      | Activity grows continuously and should not enlarge the board or task document on every change.          |
 
-The in-memory data already follows the board-task reference: each task carries `boardId`, boards no longer contain task-ID arrays, and the task repository calculates board counts. It still keeps the M2 `ownerId` field until the MongoDB repositories replace that ownership lookup. The local MongoDB practice data embeds board columns and stores tasks and activity in separate collections. Each practice task includes a description, `version`, `createdAt`, and `updatedAt`.
+The current repositories use Mongoose. Boards embed their small, fixed column list, while tasks store a `boardId` reference and remain independently queryable. Task filtering, sorting, pagination, ownership checks, counts, creation, updates, and deletion now run against MongoDB. The files in `server/data` provide repeatable demo seed values and are no longer the runtime data store.
 
-The local task collection has a compound index on `boardId`, `status`, and `dueDate`. Its explain plan reports `IXSCAN` for the board status query. Additional indexes will be added with the Mongoose models when the application starts using MongoDB.
+The task model declares indexes for the board screen, overdue queries, assignee status queries, and text search. The user model enforces one account per email with a unique index. A local explain plan reports `IXSCAN` for the indexed board query.
 
 ## Technology Stack
 
@@ -111,7 +114,7 @@ The local task collection has a compound index on `boardId`, `status`, and `dueD
 | Security           | Helmet, configured CORS, generic `500` responses            |
 | API reference      | OpenAPI 3.1, Swagger UI, Postman collection                 |
 | Styling            | Global responsive CSS and CSS Modules for the shared button |
-| Current data layer | In-memory repositories with seeded mock data                |
+| Current data layer | MongoDB 8 with Mongoose models and repositories             |
 
 ## Quick Start
 
@@ -120,6 +123,7 @@ The local task collection has a compound index on `boardId`, `status`, and `dueD
 - Node.js 20 or newer
 - npm
 - Git
+- MongoDB Community Server 8 or an Atlas connection string
 - Optional: Postman for running the saved API collection
 
 ### 1. Clone and install
@@ -145,11 +149,22 @@ Development values:
 PORT=4000
 JWT_SECRET=replace-this-with-a-long-random-development-secret
 CLIENT_ORIGIN=http://localhost:5173
+MONGODB_URI=mongodb://127.0.0.1:27017/huddle
 ```
 
-Never commit a real JWT secret.
+Never commit a real JWT secret or an Atlas connection string.
 
-### 3. Start the backend
+### 3. Seed the development database
+
+Make sure MongoDB is running, then load the demo users, boards, and tasks:
+
+```powershell
+npm run seed
+```
+
+The seed command is repeatable. It updates the named demo records without deleting unrelated development data.
+
+### 4. Start the backend
 
 Open PowerShell terminal 1:
 
@@ -159,7 +174,7 @@ npm run dev:server
 
 The API runs at `http://localhost:4000`.
 
-### 4. Start the frontend
+### 5. Start the frontend
 
 Open PowerShell terminal 2:
 
@@ -169,14 +184,14 @@ npm run dev
 
 Open the URL printed by Vite, normally `http://localhost:5173`.
 
-### 5. Sign in
+### 6. Sign in
 
 ```text
 Email: user1@nsbm.lk
 Password: password123
 ```
 
-You can also create a new account from the Sign up tab. Because the Assignment 02 repositories are in memory, accounts created at runtime disappear when the API restarts.
+You can also create a new account from the Sign up tab. Accounts, boards, and tasks remain available after the API restarts.
 
 ### Production build
 
@@ -319,6 +334,9 @@ huddle/
 |   +-- config.js
 |   +-- openapi.js
 |   +-- server.js
+|   +-- db/
+|   |   +-- connect.js
+|   |   +-- seed.js
 |   +-- controllers/
 |   |   +-- authController.js
 |   |   +-- boardController.js
@@ -326,6 +344,10 @@ huddle/
 |   +-- data/
 |   |   +-- boards.js
 |   |   +-- tasks.js
+|   +-- models/
+|   |   +-- Board.js
+|   |   +-- Task.js
+|   |   +-- User.js
 |   +-- middleware/
 |   |   +-- authenticate.js
 |   |   +-- errorHandler.js
@@ -351,6 +373,7 @@ huddle/
 |   +-- utils/
 |       +-- AppError.js
 |       +-- asyncHandler.js
+|       +-- resourceId.js
 |       +-- taskCollection.js
 +-- src/
 |   +-- api/
@@ -490,7 +513,8 @@ curl.exe http://localhost:4000/api/openapi.json
 
 ## Known Limitations
 
-- Users, boards, and tasks are stored in memory and reset when the server restarts. MongoDB is the M3 deliverable.
+- Development currently uses a local MongoDB instance. The Atlas Free deployment required for the Assignment 03 submission is still pending.
+- Client-side PouchDB caching and explicit conflict handling remain in progress for Milestone 3.
 - The current ownership model gives each seeded board one owner. Multi-member board roles and invitations are later domain work.
 - Access tokens are stored in `localStorage`; refresh tokens, rotation, revocation, CSRF protection, and cookie-based sessions are not part of M2.
 - Automated client/server tests and GitHub Actions are M4 deliverables.
@@ -518,6 +542,6 @@ Return to current development with `git checkout main` after inspecting the tag.
 
 ## Roadmap
 
-- M3: replace in-memory repositories with MongoDB/Mongoose and add client-side offline caching.
+- M3: connect the current Mongoose repositories to Atlas, then add client-side offline caching and conflict handling.
 - M4: add Jest, React Testing Library, Supertest, and GitHub Actions.
 - M5: add Socket.io live updates, conflict detection, Docker Compose, public deployment, and final team reflection.
