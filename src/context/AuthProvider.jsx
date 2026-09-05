@@ -2,22 +2,47 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   clearAuthToken,
   getAuthToken,
+  isNetworkError,
   setAuthToken,
 } from '../api/client.js';
-import {
-  getCurrentUser,
-  loginUser,
-  registerUser,
-} from '../api/auth.js';
+import { getCurrentUser, loginUser, registerUser } from '../api/auth.js';
 import { AuthContext } from './AuthContext.js';
+
+const USER_STORAGE_KEY = 'huddle-user';
 
 function getMessage(error) {
   return error?.message ?? 'Authentication failed.';
 }
 
+function readCachedUser() {
+  if (typeof window === 'undefined' || !getAuthToken()) {
+    return null;
+  }
+
+  try {
+    const value = window.localStorage.getItem(USER_STORAGE_KEY);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+    return null;
+  }
+}
+
+function cacheUser(user) {
+  window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+}
+
+function clearCachedUser() {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+  }
+}
+
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => Boolean(getAuthToken()));
+  const [user, setUser] = useState(readCachedUser);
+  const [loading, setLoading] = useState(
+    () => Boolean(getAuthToken()) && !readCachedUser(),
+  );
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,6 +50,8 @@ export default function AuthProvider({ children }) {
 
     async function restoreSession() {
       if (!getAuthToken()) {
+        clearCachedUser();
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -34,12 +61,22 @@ export default function AuthProvider({ children }) {
 
         if (!cancelled) {
           setUser(currentUser);
+          cacheUser(currentUser);
+          setError('');
         }
       } catch (restoreError) {
-        clearAuthToken();
+        const cachedUser = readCachedUser();
 
         if (!cancelled) {
-          setError(getMessage(restoreError));
+          if (cachedUser && isNetworkError(restoreError)) {
+            setUser(cachedUser);
+            setError('');
+          } else {
+            clearAuthToken();
+            clearCachedUser();
+            setUser(null);
+            setError(getMessage(restoreError));
+          }
         }
       } finally {
         if (!cancelled) {
@@ -57,6 +94,7 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     function handleExpiredSession() {
+      clearCachedUser();
       setUser(null);
       setError('Your session expired. Please log in again.');
     }
@@ -74,6 +112,7 @@ export default function AuthProvider({ children }) {
     try {
       const result = await loginUser(credentials);
       setAuthToken(result.token);
+      cacheUser(result.user);
       setUser(result.user);
 
       return result.user;
@@ -100,6 +139,7 @@ export default function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     clearAuthToken();
+    clearCachedUser();
     setUser(null);
     setError('');
   }, []);
@@ -117,7 +157,5 @@ export default function AuthProvider({ children }) {
     [user, loading, error, login, register, logout],
   );
 
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

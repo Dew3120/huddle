@@ -8,6 +8,7 @@
     "start:server": "node server/server.js",
     "seed": "node server/db/seed.js",
     "build": "vite build",
+    "test": "node --test src/db/taskCache.test.js src/services/taskSynchronization.test.js",
     "preview": "vite preview",
     "verify:assignment-02": "node scripts/verify-assignment-02.mjs"
   },
@@ -44,6 +45,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^10.8.1",
+    "fake-indexeddb": "^6.2.5",
     "prettier": "^3.9.6",
     "vite": "^8.2.1"
   }

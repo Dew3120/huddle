@@ -1,6 +1,6 @@
 export const TOKEN_STORAGE_KEY = 'token';
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '';
+const BASE_URL = import.meta.env?.VITE_API_URL ?? '';
 
 export class ApiError extends Error {
   constructor({
@@ -17,6 +17,14 @@ export class ApiError extends Error {
     this.details = details;
     this.requestId = requestId;
   }
+}
+
+export function isNetworkError(error) {
+  return (
+    (typeof navigator !== 'undefined' && !navigator.onLine) ||
+    error instanceof TypeError ||
+    error?.status === 0
+  );
 }
 
 export function getAuthToken() {
