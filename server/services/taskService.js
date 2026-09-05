@@ -1,6 +1,6 @@
 import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
-import { NotFoundError } from '../utils/AppError.js';
+import { NotFoundError, ConflictError } from '../utils/AppError.js';
 import { publicTask } from '../utils/taskCollection.js';
 
 async function findOrCreateDefaultBoard(user) {
@@ -62,11 +62,31 @@ export async function updateTask(id, updates, user) {
     updates,
   );
 
-  if (!task) {
+  if (task) {
+    return publicTask(task);
+  }
+
+  const current = await taskRepository.findByIdForOwner(
+    id,
+    user.databaseId,
+  );
+
+  if (!current) {
     throw new NotFoundError('Task');
   }
 
-  return publicTask(task);
+  if (updates.version !== undefined) {
+    throw new ConflictError(
+      'Task was updated by someone else',
+      'TASK_CONFLICT',
+      {
+        current: publicTask(current),
+        yourVersion: updates.version,
+      },
+    );
+  }
+
+  throw new NotFoundError('Task');
 }
 
 export async function deleteTask(id, user) {

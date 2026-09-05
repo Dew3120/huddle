@@ -1,11 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Huddle Assignment 02 API
-  version: 2.0.0
+  title: Huddle API
+  version: 3.0.0
   description: |
-    REST API for Huddle, a collaborative task board built for Assignment 02.
-    Authentication uses a short-lived JWT in the Authorization header. Data is
-    intentionally stored in memory until the MongoDB milestone.
+    REST API for Huddle, a collaborative task board with JWT authentication
+    and MongoDB persistence.
   contact:
     name: Huddle Team
     url: https://github.com/Dew3120/huddle
@@ -134,6 +133,24 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/boards/{boardId}/task-stats:
+    get:
+      tags: [Boards]
+      summary: Get task statistics for an owned board
+      parameters:
+        - $ref: "#/components/parameters/BoardId"
+      responses:
+        "200":
+          description: Board task statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoardTaskStatsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/BoardNotFound"
+
   /api/boards/{boardId}/tasks:
     get:
       tags: [Boards]
@@ -244,6 +261,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/TaskNotFound"
+        "409":
+          $ref: "#/components/responses/TaskConflict"
     delete:
       tags: [Tasks]
       summary: Delete an owned task
@@ -429,7 +448,7 @@ components:
           minLength: 3
     Task:
       type: object
-      required: [id, title, assignee, status, dueDate]
+      required: [id, title, assignee, status, dueDate, version]
       properties:
         id:
           type: string
@@ -444,6 +463,44 @@ components:
         dueDate:
           type: string
           format: date
+        version:
+          type: integer
+          minimum: 0
+
+    BoardTaskStats:
+      type: object
+      required: [byStatus, overdueByAssignee]
+      properties:
+        byStatus:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status:
+                type: string
+                enum: [todo, in-progress, done]
+              count:
+                type: integer
+                minimum: 0
+        overdueByAssignee:
+          type: array
+          items:
+            type: object
+            required: [assignee, count]
+            properties:
+              assignee:
+                type: string
+              count:
+                type: integer
+                minimum: 0
+
+    BoardTaskStatsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/BoardTaskStats"
     TaskResponse:
       type: object
       required: [data]
@@ -509,6 +566,9 @@ components:
         dueDate:
           type: string
           format: date
+        version:
+          type: integer
+          minimum: 0
     ValidationDetail:
       type: object
       required: [field, message]
@@ -517,6 +577,34 @@ components:
           type: string
         message:
           type: string
+    TaskConflictDetails:
+      type: object
+      required: [current, yourVersion]
+      properties:
+        current:
+          $ref: "#/components/schemas/Task"
+        yourVersion:
+          type: integer
+          minimum: 0
+    TaskConflictApiError:
+      type: object
+      required: [message, code, requestId, details]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          const: TASK_CONFLICT
+        requestId:
+          type: string
+        details:
+          $ref: "#/components/schemas/TaskConflictDetails"
+    TaskConflictErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/TaskConflictApiError"
     ApiError:
       type: object
       required: [message, code, requestId]
@@ -575,6 +663,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    TaskConflict:
+      description: Task was updated by someone else
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TaskConflictErrorResponse"
     BoardNotFound:
       description: Board is missing or inaccessible
       content:

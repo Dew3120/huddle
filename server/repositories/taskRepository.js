@@ -135,14 +135,21 @@ export async function create(task) {
 
 export async function updateForOwner(id, ownerId, updates) {
   const boardIds = await findOwnedBoardIds(ownerId);
+  const filter = {
+    ...idFilter(id),
+    boardId: { $in: boardIds },
+  };
+
+  if (updates.version !== undefined) {
+    filter.version = updates.version;
+  }
+
+  const { version, ...taskUpdates } = updates;
 
   return Task.findOneAndUpdate(
+    filter,
     {
-      ...idFilter(id),
-      boardId: { $in: boardIds },
-    },
-    {
-      $set: updates,
+      $set: taskUpdates,
       $inc: { version: 1 },
     },
     {
@@ -160,4 +167,69 @@ export async function removeForOwner(id, ownerId) {
   });
 
   return Boolean(task);
+}
+
+export async function getStatsByBoard(boardId) {
+  const [stats] = await Task.aggregate([
+    {
+      $match: {
+        boardId,
+      },
+    },
+    {
+      $facet: {
+        byStatus: [
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              status: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: {
+              status: 1,
+            },
+          },
+        ],
+        overdueByAssignee: [
+          {
+            $match: {
+              dueDate: { $lt: new Date() },
+              status: { $ne: 'done' },
+            },
+          },
+          {
+            $group: {
+              _id: '$assignee',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              assignee: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: {
+              assignee: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return {
+    byStatus: stats?.byStatus ?? [],
+    overdueByAssignee: stats?.overdueByAssignee ?? [],
+  };
 }

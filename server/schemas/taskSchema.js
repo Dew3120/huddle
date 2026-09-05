@@ -71,8 +71,9 @@ export const updateTaskSchema = z
     assignee: z.string().trim().min(1, 'Assignee is required').optional(),
     status: statusSchema.optional(),
     dueDate: calendarDateSchema.optional(),
+    version: z.number().int().min(0).optional(),
   })
   .strict()
-  .refine((value) => Object.keys(value).length > 0, {
+  .refine((value) => Object.keys(value).some((key) => key !== 'version'), {
     message: 'At least one task field is required',
   });

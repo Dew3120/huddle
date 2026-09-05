@@ -26,3 +26,14 @@ export async function listTasks(req, res) {
     ),
   );
 }
+
+export async function taskStats(req, res) {
+  assertResourceId(req.params.id, 'Board');
+
+  res.json({
+    data: await boardService.getBoardTaskStats(
+      req.params.id,
+      req.user,
+    ),
+  });
+}
