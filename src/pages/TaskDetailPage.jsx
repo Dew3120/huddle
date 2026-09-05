@@ -120,6 +120,16 @@ export default function TaskDetailPage({ isModal = false }) {
         {statusLabels[task.status]}
       </p>
 
+      {task.syncState && (
+        <p className={`sync-pill sync-pill--${task.syncState}`}>
+          {task.syncState === 'conflict'
+            ? 'Conflicting edit'
+            : task.syncState === 'failed'
+              ? 'Synchronization failed'
+              : 'Waiting to synchronize'}
+        </p>
+      )}
+
       <h1 id="task-detail-title">
         {isEditing ? 'Edit task' : task.title}
       </h1>

@@ -197,6 +197,71 @@ select:focus-visible {
   white-space: nowrap;
 }
 
+.sync-status {
+  border-bottom: 1px solid rgb(37 99 235 / 28%);
+  background: rgb(239 246 255 / 96%);
+  color: #1e3a5f;
+}
+
+.sync-status--offline {
+  border-bottom-color: rgb(217 119 6 / 34%);
+  background: rgb(255 247 237 / 96%);
+  color: #78350f;
+}
+
+.sync-status__inner,
+.sync-status__issues {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 32px;
+}
+
+.sync-status__inner,
+.sync-issue,
+.sync-issue__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sync-status__inner,
+.sync-issue {
+  justify-content: space-between;
+}
+
+.sync-status__summary,
+.sync-issue > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.sync-status__summary span,
+.sync-issue span {
+  color: inherit;
+  font-size: 0.84rem;
+  opacity: 0.82;
+}
+
+.sync-status__issues {
+  display: grid;
+  gap: 8px;
+  padding-top: 0;
+}
+
+.sync-issue {
+  padding: 10px 12px;
+  border: 1px solid rgb(217 119 6 / 30%);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sync-issue--conflict {
+  border-color: rgb(190 24 93 / 34%);
+  background: rgb(253 242 248 / 96%);
+  color: #831843;
+}
+
 .board-progress,
 .task-form,
 .task-filters,
@@ -464,7 +529,15 @@ select:focus-visible {
 }
 
 .task-card__status {
-  margin-bottom: 10px;
+  margin: 0;
+}
+
+.task-card__badges {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
 }
 
 .task-card__title {
@@ -495,7 +568,8 @@ select:focus-visible {
 }
 
 .status-pill,
-.metadata-pill {
+.metadata-pill,
+.sync-pill {
   display: inline-flex;
   min-height: 28px;
   align-items: center;
@@ -510,6 +584,19 @@ select:focus-visible {
   line-height: 1;
   overflow-wrap: anywhere;
   box-shadow: 0 0 14px rgb(37 99 235 / 12%);
+}
+
+.sync-pill {
+  border-color: rgb(37 99 235 / 28%);
+  background: rgb(239 246 255 / 94%);
+  color: #1d4ed8;
+}
+
+.sync-pill--conflict,
+.sync-pill--failed {
+  border-color: rgb(190 24 93 / 34%);
+  background: rgb(253 242 248 / 96%);
+  color: #9d174d;
 }
 
 .status-pill--todo {
@@ -612,6 +699,19 @@ select:focus-visible {
   }
 
   .task-card__details {
+    flex-direction: column;
+  }
+
+  .sync-status__inner,
+  .sync-status__issues {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .sync-status__inner,
+  .sync-issue,
+  .sync-issue__actions {
+    align-items: stretch;
     flex-direction: column;
   }
 }
@@ -1173,6 +1273,41 @@ html[data-theme='dark'] .metadata-pill--assignee {
   border-color: rgb(125 211 252 / 42%);
   background: rgb(12 74 110 / 28%);
   color: #e0f2fe;
+}
+
+html[data-theme='dark'] .sync-status {
+  border-bottom-color: rgb(125 211 252 / 34%);
+  background: rgb(8 47 73 / 92%);
+  color: #e0f2fe;
+}
+
+html[data-theme='dark'] .sync-status--offline {
+  border-bottom-color: rgb(251 191 36 / 36%);
+  background: rgb(69 26 3 / 92%);
+  color: #fef3c7;
+}
+
+html[data-theme='dark'] .sync-issue {
+  background: rgb(15 23 42 / 84%);
+}
+
+html[data-theme='dark'] .sync-issue--conflict {
+  border-color: rgb(251 113 133 / 48%);
+  background: rgb(76 5 25 / 82%);
+  color: #ffe4e6;
+}
+
+html[data-theme='dark'] .sync-pill {
+  border-color: rgb(125 211 252 / 42%);
+  background: rgb(12 74 110 / 28%);
+  color: #e0f2fe;
+}
+
+html[data-theme='dark'] .sync-pill--conflict,
+html[data-theme='dark'] .sync-pill--failed {
+  border-color: rgb(251 113 133 / 48%);
+  background: rgb(76 5 25 / 72%);
+  color: #ffe4e6;
 }
 
 html[data-theme='dark'] input::placeholder {
