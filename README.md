@@ -19,6 +19,7 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 - [Response Contract](#response-contract)
 - [Authentication and Security Decisions](#authentication-and-security-decisions)
 - [Frontend Integration](#frontend-integration)
+- [Offline Synchronization](#offline-synchronization)
 - [Application Routes](#application-routes)
 - [Project Structure](#project-structure)
 - [Assignment 02 Evidence](#assignment-02-evidence)
@@ -35,7 +36,7 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | Assignment 01 / M1 | Static React front-end skeleton                            | Complete and tagged as `assignment-01-static-front-end-skeleton` |
 | Assignment 02 / M2 | Working REST API with mock data integrated with the client | Complete and tagged as `assignment-02-working-rest-api`          |
-| M3                 | MongoDB persistence and offline support                    | In progress on `feature/session-03-database-persistence`         |
+| M3                 | MongoDB persistence and offline support                    | Local implementation complete; Atlas setup remains pending       |
 | M4                 | Automated client/server tests and CI                       | Planned                                                          |
 | M5                 | Real-time sync, Docker, deployment, and final launch       | Planned                                                          |
 
@@ -108,6 +109,7 @@ The task model declares indexes for the board screen, overdue queries, assignee 
 | Layer              | Technology                                                  |
 | ------------------ | ----------------------------------------------------------- |
 | Client             | React 19, React Router, Context API, `useReducer`, Vite     |
+| Client persistence | PouchDB over IndexedDB with a user-scoped mutation queue    |
 | API                | Node.js, Express 5                                          |
 | Validation         | Zod                                                         |
 | Authentication     | `bcryptjs`, `jsonwebtoken`, `express-rate-limit`            |
@@ -196,6 +198,7 @@ You can also create a new account from the Sign up tab. Accounts, boards, and ta
 ### Production build
 
 ```powershell
+npm test
 npm run build
 npm run preview
 ```
@@ -225,7 +228,7 @@ The Postman collection uses collection variables for `baseUrl`, `token`, and `ta
 | `GET /api/tasks`            | Bearer JWT     | List tasks                     | `200`   | `400`, `401`        |
 | `GET /api/tasks/:id`        | Bearer JWT     | Read one task                  | `200`   | `401`, `404`        |
 | `POST /api/tasks`           | Bearer JWT     | Create a task                  | `201`   | `400`, `401`        |
-| `PATCH /api/tasks/:id`      | Bearer JWT     | Update task fields or status   | `200`   | `400`, `401`, `404` |
+| `PATCH /api/tasks/:id`      | Bearer JWT     | Update task fields or status   | `200`   | `400`, `401`, `404`, `409` |
 | `DELETE /api/tasks/:id`     | Bearer JWT     | Delete a task                  | `204`   | `401`, `404`        |
 
 Task collection query parameters:
@@ -300,10 +303,16 @@ A production version would use a short-lived access token plus a rotating refres
 - `src/api/client.js` owns base URL selection, JSON headers, JWT attachment, error conversion, `204` handling, and central `401` expiry behavior.
 - `src/api/auth.js` contains register, login, and current-user requests.
 - `src/api/tasks.js` contains live task CRUD calls. No component imports mock task data.
-- `AuthProvider` restores the token-backed session and exposes `login`, `register`, and `logout`.
-- `TasksProvider` loads tasks and applies successful API mutations to shared reducer state.
+- `AuthProvider` restores the token-backed session and keeps the public user profile available during an offline refresh.
+- `TasksProvider` renders cached tasks first, refreshes them from the API, queues offline task writes, and exposes synchronization state.
 - Loading, empty, validation, network-error, and retry states are driven by real HTTP behavior.
 - Vite proxies `/api` to `http://localhost:4000` during development; Express also has environment-controlled CORS for deployed origins.
+
+## Offline Synchronization
+
+Each signed-in user receives a separate PouchDB database in IndexedDB. Server tasks are cached without PouchDB metadata, and queued create, update, and delete mutations are compacted so repeated offline edits do not produce unnecessary requests. The board renders immediately from this cache and continues to support task changes when the API or network is unavailable.
+
+When connectivity returns, Huddle replays pending mutations and refreshes the cache from MongoDB. Task updates include the version last seen by the browser. The server performs the version check and update atomically; a stale write returns `409 TASK_CONFLICT` with the current task. The interface then lets the user keep the server version or deliberately retry their own changes against the current version. Pending, failed, and conflicting tasks remain visible instead of silently losing an edit.
 
 ## Application Routes
 
@@ -390,11 +399,16 @@ huddle/
 |   |   +-- EditTaskForm.jsx
 |   |   +-- TaskCard.jsx
 |   |   +-- TaskFilters.jsx
+|   |   +-- SyncStatusBar.jsx
 |   +-- context/
 |   |   +-- AuthProvider.jsx
 |   |   +-- TasksProvider.jsx
+|   +-- db/
+|   |   +-- taskCache.js
 |   +-- hooks/
 |   +-- pages/
+|   +-- services/
+|   |   +-- taskSynchronization.js
 |   +-- utils/
 |   +-- App.jsx
 |   +-- index.css
@@ -484,6 +498,7 @@ The repository uses feature branches and pull requests so individual contributio
 
 ```powershell
 npm install
+npm test
 npm run build
 npm audit
 ```
@@ -510,15 +525,17 @@ curl.exe http://localhost:4000/api/openapi.json
 10. Request another user's board/task and confirm the API conceals it with `404`.
 11. Log out and confirm the protected client returns to the authentication screen.
 12. Import and run the committed Postman collection as the saved API contract evidence.
+13. Load the board once, stop the API, move or edit a task, and refresh the browser; confirm the cached task and `Pending sync` state remain visible.
+14. Restart the API and select `Try reconnecting`; confirm the pending marker clears and MongoDB contains the update.
+15. Update the same task from two clients with the same starting version; confirm the stale client receives `409 TASK_CONFLICT` and can keep the server copy or apply its own changes.
 
 ## Known Limitations
 
 - Development currently uses a local MongoDB instance. The Atlas Free deployment required for the Assignment 03 submission is still pending.
-- Client-side PouchDB caching and explicit conflict handling remain in progress for Milestone 3.
 - The current ownership model gives each seeded board one owner. Multi-member board roles and invitations are later domain work.
 - Access tokens are stored in `localStorage`; refresh tokens, rotation, revocation, CSRF protection, and cookie-based sessions are not part of M2.
 - Automated client/server tests and GitHub Actions are M4 deliverables.
-- WebSocket updates, conflict detection, Docker Compose, and public deployment are M5 deliverables.
+- WebSocket updates, Docker Compose, and public deployment are M5 deliverables.
 - The Swagger/OpenAPI reference is included as an Assignment 02 bonus; the committed Postman collection remains the primary manual evidence set.
 
 ## Release Tag
@@ -542,6 +559,6 @@ Return to current development with `git checkout main` after inspecting the tag.
 
 ## Roadmap
 
-- M3: connect the current Mongoose repositories to Atlas, then add client-side offline caching and conflict handling.
+- M3: connect the completed MongoDB, PouchDB, and conflict-handling implementation to Atlas and capture final assignment evidence.
 - M4: add Jest, React Testing Library, Supertest, and GitHub Actions.
 - M5: add Socket.io live updates, conflict detection, Docker Compose, public deployment, and final team reflection.
