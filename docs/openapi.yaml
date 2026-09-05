@@ -1,6 +1,6 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
-  title: Huddle Assignment 02 API
+  title: Huddle API
   version: 3.0.0
   description: |
     REST API for Huddle, a collaborative task board with JWT authentication
@@ -349,7 +349,7 @@ components:
       properties:
         status:
           type: string
-          enum: [ok]
+          const: ok
         uptime:
           type: number
           minimum: 0
@@ -577,6 +577,34 @@ components:
           type: string
         message:
           type: string
+    TaskConflictDetails:
+      type: object
+      required: [current, yourVersion]
+      properties:
+        current:
+          $ref: "#/components/schemas/Task"
+        yourVersion:
+          type: integer
+          minimum: 0
+    TaskConflictApiError:
+      type: object
+      required: [message, code, requestId, details]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          const: TASK_CONFLICT
+        requestId:
+          type: string
+        details:
+          $ref: "#/components/schemas/TaskConflictDetails"
+    TaskConflictErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/TaskConflictApiError"
     ApiError:
       type: object
       required: [message, code, requestId]
@@ -640,7 +668,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/TaskConflictErrorResponse"
     BoardNotFound:
       description: Board is missing or inaccessible
       content:
