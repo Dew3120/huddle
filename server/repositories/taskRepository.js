@@ -135,14 +135,21 @@ export async function create(task) {
 
 export async function updateForOwner(id, ownerId, updates) {
   const boardIds = await findOwnedBoardIds(ownerId);
+  const filter = {
+    ...idFilter(id),
+    boardId: { $in: boardIds },
+  };
+
+  if (updates.version !== undefined) {
+    filter.version = updates.version;
+  }
+
+  const { version, ...taskUpdates } = updates;
 
   return Task.findOneAndUpdate(
+    filter,
     {
-      ...idFilter(id),
-      boardId: { $in: boardIds },
-    },
-    {
-      $set: updates,
+      $set: taskUpdates,
       $inc: { version: 1 },
     },
     {
