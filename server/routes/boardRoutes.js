@@ -10,6 +10,10 @@ const router = Router();
 router.get('/', asyncHandler(controller.list));
 router.post('/', validate(createBoardSchema), asyncHandler(controller.create));
 router.get(
+  '/:id/task-stats',
+  asyncHandler(controller.taskStats),
+);
+router.get(
   '/:id/tasks',
   validate(taskQuerySchema, 'query'),
   asyncHandler(controller.listTasks),

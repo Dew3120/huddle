@@ -65,3 +65,16 @@ export async function listBoardTasks(boardId, query, user) {
     },
   };
 }
+
+export async function getBoardTaskStats(boardId, user) {
+  const board = await boardRepository.findByIdForOwner(
+    boardId,
+    user.databaseId,
+  );
+
+  if (!board) {
+    throw new NotFoundError('Board');
+  }
+
+  return taskRepository.getStatsByBoard(board._id);
+}
