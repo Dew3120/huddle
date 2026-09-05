@@ -1,8 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
+
+const eventsPath = fileURLToPath(
+  new URL('./node_modules/events/events.js', import.meta.url),
+);
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      events: eventsPath,
+    },
+  },
   server: {
     proxy: {
       '/api': {
