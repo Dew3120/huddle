@@ -48,5 +48,10 @@
     "fake-indexeddb": "^6.2.5",
     "prettier": "^3.9.6",
     "vite": "^8.2.1"
+  },
+  "overrides": {
+    "pouchdb-browser": {
+      "uuid": "^11.1.1"
+    }
   }
 }
