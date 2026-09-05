@@ -55,7 +55,7 @@ export default function App() {
           <LoadingState />
         </main>
       ) : isAuthenticated ? (
-        <TasksProvider>
+        <TasksProvider userId={user?.id}>
           <AppNavigation
             theme={theme}
             user={user}

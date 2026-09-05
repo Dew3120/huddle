@@ -7,10 +7,17 @@ import {
 } from '../api/tasks.js';
 import { tasksReducer } from '../utils/tasksReducer.js';
 import { TasksContext } from './TasksContext.js';
+import {
+  createTaskCache,
+  readCachedTasks,
+  replaceCachedTasks,
+  saveCachedTask,
+  removeCachedTask,
+} from '../db/taskCache.js';
 
 const statusOrder = ['todo', 'in-progress', 'done'];
 
-export default function TasksProvider({ children }) {
+export default function TasksProvider({ children, userId }) {
   const [tasks, dispatch] = useReducer(tasksReducer, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,34 +25,55 @@ export default function TasksProvider({ children }) {
   const [reloadCount, setReloadCount] = useState(0);
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    createTaskCache(userId);
+
     let cancelled = false;
 
     setLoading(true);
     setError('');
 
-    getTasks()
-      .then((data) => {
-        if (!cancelled) {
-          dispatch({ type: 'loaded', tasks: data });
-        }
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(
-            requestError.message || 'An unexpected error occurred.',
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
+    async function loadData() {
+      try {
+        // Read cached tasks first and display them immediately
+        const cachedTasks = await readCachedTasks();
+        if (!cancelled && cachedTasks.length > 0) {
+          dispatch({ type: 'loaded', tasks: cachedTasks });
           setLoading(false);
         }
-      });
+
+        // Refresh from the API when online
+        const apiTasks = await getTasks();
+        if (!cancelled) {
+          dispatch({ type: 'loaded', tasks: apiTasks });
+          setLoading(false);
+          // Replace cache after a successful refresh
+          await replaceCachedTasks(apiTasks);
+        }
+      } catch (requestError) {
+        if (!cancelled) {
+          // If API is unavailable, check if we have cached tasks displayed
+          const cachedTasks = await readCachedTasks();
+          if (cachedTasks.length === 0) {
+            setError(
+              requestError.message || 'An unexpected error occurred.',
+            );
+          }
+          setLoading(false);
+        }
+      }
+    }
+
+    loadData();
 
     return () => {
       cancelled = true;
     };
-  }, [reloadCount]);
+  }, [userId, reloadCount]);
 
   async function addTask(taskDetails) {
     setMutationError('');
@@ -60,6 +88,8 @@ export default function TasksProvider({ children }) {
         type: 'added',
         task,
       });
+
+      await saveCachedTask(task);
 
       return task;
     } catch (requestError) {
@@ -82,6 +112,8 @@ export default function TasksProvider({ children }) {
         changes: task,
       });
 
+      await saveCachedTask(task);
+
       return task;
     } catch (requestError) {
       setMutationError(
@@ -101,6 +133,8 @@ export default function TasksProvider({ children }) {
         type: 'deleted',
         id: taskId,
       });
+
+      await removeCachedTask(taskId);
     } catch (requestError) {
       setMutationError(
         requestError.message || 'Unable to delete the task.',
@@ -110,7 +144,7 @@ export default function TasksProvider({ children }) {
   }
 
   async function moveTask(taskId, direction) {
-    const task = tasks.find((item) => item.id === taskId);
+    const task = tasks.find((item) => item.id === taskId || item._id === taskId);
 
     if (!task) {
       return;
