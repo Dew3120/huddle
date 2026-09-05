@@ -462,7 +462,7 @@ export default function TasksProvider({ children, userId }) {
       dispatch({
         type: 'updated',
         id: mutation.taskId,
-        changes: currentTask,
+        changes: { ...currentTask, syncState: undefined },
       });
     }
 
