@@ -1,10 +1,12 @@
 # Huddle
 
-Huddle is a collaborative task board built progressively across five full-stack milestones. Assignment 02 completes the working REST API milestone: the React client now uses a layered Node.js and Express backend with validated CRUD, JWT authentication, ownership checks, board resources, API documentation, and reproducible Postman evidence.
+Huddle is a collaborative task board built progressively across five full-stack milestones. Assignment 03 combines the React client, Express API, MongoDB persistence through Mongoose, browser persistence through PouchDB, and version-based conflict handling.
 
 Repository: [github.com/Dew3120/huddle](https://github.com/Dew3120/huddle)
 
 Assignment 02 release tag: `assignment-02-working-rest-api`
+
+Assignment 03 final tag: `assignment-03-working-full-stack-application` (created after the final merge and Atlas evidence are complete)
 
 ## Table of Contents
 
@@ -23,6 +25,7 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 - [Application Routes](#application-routes)
 - [Project Structure](#project-structure)
 - [Assignment 02 Evidence](#assignment-02-evidence)
+- [Assignment 03 Evidence](#assignment-03-evidence)
 - [Postman Evidence Index](#postman-evidence-index)
 - [Team Roles and Contributions](#team-roles-and-contributions)
 - [Verification Guide](#verification-guide)
@@ -36,11 +39,11 @@ Assignment 02 release tag: `assignment-02-working-rest-api`
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | Assignment 01 / M1 | Static React front-end skeleton                            | Complete and tagged as `assignment-01-static-front-end-skeleton` |
 | Assignment 02 / M2 | Working REST API with mock data integrated with the client | Complete and tagged as `assignment-02-working-rest-api`          |
-| M3                 | MongoDB persistence and offline support                    | Local implementation complete; Atlas setup remains pending       |
+| Assignment 03 / M3 | MongoDB persistence, offline support, and conflict handling | Implementation verified locally; Atlas Free setup and final tag pending |
 | M4                 | Automated client/server tests and CI                       | Planned                                                          |
 | M5                 | Real-time sync, Docker, deployment, and final launch       | Planned                                                          |
 
-The tagged Assignment 02 release intentionally keeps server data in memory. Current Milestone 3 development uses MongoDB through Mongoose, while the Assignment 02 tag remains unchanged for marking.
+The tagged Assignment 02 release intentionally keeps server data in memory. The current Assignment 03 branch uses MongoDB through Mongoose and keeps the Assignment 02 tag unchanged for marking.
 
 ## Assignment 02 Highlights
 
@@ -133,7 +136,7 @@ The task model declares indexes for the board screen, overdue queries, assignee 
 ```powershell
 git clone https://github.com/Dew3120/huddle.git
 cd huddle
-git checkout main
+git switch feature/session-03-client-persistence
 npm ci
 ```
 
@@ -145,7 +148,7 @@ Create `.env` from the committed example:
 Copy-Item .env.example .env
 ```
 
-Development values:
+For local development, use:
 
 ```env
 PORT=4000
@@ -154,7 +157,7 @@ CLIENT_ORIGIN=http://localhost:5173
 MONGODB_URI=mongodb://127.0.0.1:27017/huddle
 ```
 
-Never commit a real JWT secret or an Atlas connection string.
+For Atlas, replace only `MONGODB_URI` with the connection string copied from Atlas. Keep the database user password inside the URI private. Never commit `.env`, a real JWT secret, or an Atlas connection string.
 
 ### 3. Seed the development database
 
@@ -202,6 +205,19 @@ npm test
 npm run build
 npm run preview
 ```
+
+Use `npm run preview` when demonstrating the offline app-shell cache. The development server is useful for normal API work; the production preview is the verified path for service-worker caching.
+
+### Atlas Free Database setup
+
+1. Create or open the group project in [MongoDB Atlas](https://www.mongodb.com/atlas/database).
+2. Create an M0 Free cluster and a database user for this application.
+3. In Network Access, add the developer machine's current IP address.
+4. Select **Connect > Drivers**, choose Node.js, and copy the URI.
+5. Put the URI in the local `.env` as `MONGODB_URI`, then run `npm run seed` and start the API.
+6. Confirm `GET /api/health` reports `database.status` as `connected` before taking the Atlas/Compass screenshots.
+
+Do not put Atlas credentials in GitHub, the report, screenshots, Postman variables, or chat messages. The final submission should include the Atlas project/cluster evidence without exposing the password.
 
 ## API Documentation
 
@@ -337,6 +353,8 @@ huddle/
 |   +-- screenshots/
 |   |   +-- assignment-02/
 |   |       +-- 01-sign-in-live-api.png ... 13-created-task-on-board.png
+|   |   +-- assignment-03/
+|   |       +-- 01-sign-in.png ... 21-backend-health-response.png
 |   +-- openapi.yaml
 +-- server/
 |   +-- app.js
@@ -454,6 +472,18 @@ All current UI images were captured against the live Express API, not local mock
 | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | ![Swagger UI showing the complete Huddle task CRUD contract](docs/screenshots/assignment-02/08-swagger-api-reference.png) | ![Swagger execution showing the backend health response body](docs/screenshots/assignment-02/09-backend-health-response.png) |
 
+## Assignment 03 Evidence
+
+The Assignment 03 evidence folder contains the frontend workflow, PouchDB offline/reconnect states, conflict-resolution state, backend verification captures, and MongoDB Compass view:
+
+- [`docs/screenshots/assignment-03/`](docs/screenshots/assignment-03/) contains the numbered screenshot set used by the report.
+- [`17-backend-task-stats.png`](docs/screenshots/assignment-03/17-backend-task-stats.png) shows the aggregation response grouped by status and overdue assignee.
+- [`18-backend-conflict-response.png`](docs/screenshots/assignment-03/18-backend-conflict-response.png) shows the `409 TASK_CONFLICT` response from an optimistic-concurrency test.
+- [`19-mongodb-compass-tasks.png`](docs/screenshots/assignment-03/19-mongodb-compass-tasks.png) shows persisted task documents in MongoDB Compass.
+- [`20-swagger-api-reference.png`](docs/screenshots/assignment-03/20-swagger-api-reference.png) and [`21-backend-health-response.png`](docs/screenshots/assignment-03/21-backend-health-response.png) show the API documentation and connected backend health response.
+
+Atlas-specific screenshots are added after the Atlas Free cluster is created and the application is pointed at it.
+
 ## Postman Evidence Index
 
 The committed collection and screenshots form a repeatable manual API test suite.
@@ -483,12 +513,12 @@ The committed collection and screenshots form a repeatable manual API test suite
 
 ## Team Roles and Contributions
 
-| Team member            | Assignment 02 role and contribution                                                                                                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T D Gnanasena          | Project coordination, backend architecture, authentication, CRUD, validation, ownership, client/API integration, Swagger/OpenAPI, documentation, integration review, and release preparation |
-| J Charles              | Protected board API endpoints, board ownership checks, and board-task query integration through a reviewed feature branch and pull request                                                   |
-| K V Dilnath (Vinuka)   | Task search/filter contribution plus the exported Postman collection, request assertions, and API evidence screenshots                                                                       |
-| R S Bokalagama (Rovin) | Assignment 02 API verification runner, reproducible 17-check smoke-test coverage, and verification documentation                                                                             |
+| Team member | Assignment 03 role and contribution |
+| ----------- | ----------------------------------- |
+| T D Gnanasena (NSBM 36407) | Project coordination, MongoDB/Mongoose integration, authentication and CRUD persistence, integration of the client-persistence branches, PWA/offline completion, README, report, and release preparation. |
+| J Charles (NSBM 36359) | Assignment 03 verification contribution: reproducible persistence/conflict verification script, test/build/audit checks, and clean verification branch history. |
+| K V Dilnath (NSBM 33700) | PouchDB browser cache and user-scoped task persistence, including loading cached tasks before refresh and the client-persistence branch contribution. |
+| R S Bokalagama (NSBM 37412) | Aggregation endpoint and optimistic task-concurrency behavior, including stale-version conflict evidence and API statistics verification. Plymouth ID was not provided. |
 
 The repository uses feature branches and pull requests so individual contributions remain visible in Git history. Do not squash or rewrite that history before submission.
 
@@ -501,6 +531,8 @@ npm install
 npm test
 npm run build
 npm audit
+npm run verify:assignment-02
+npm run verify:assignment-03
 ```
 
 With the API running:
@@ -529,14 +561,16 @@ curl.exe http://localhost:4000/api/openapi.json
 14. Restart the API and select `Try reconnecting`; confirm the pending marker clears and MongoDB contains the update.
 15. Update the same task from two clients with the same starting version; confirm the stale client receives `409 TASK_CONFLICT` and can keep the server copy or apply its own changes.
 
+The repeatable verification commands report `17/17` Assignment 02 checks and `9/9` Assignment 03 checks when the API is connected to the seeded MongoDB database. The current client test suite covers PouchDB cache replacement, mutation compaction, offline creates/updates/deletes, network failures, mergeable edits, and visible same-field conflicts.
+
 ## Known Limitations
 
-- Development currently uses a local MongoDB instance. The Atlas Free deployment required for the Assignment 03 submission is still pending.
+- The local evidence was verified against MongoDB Community Server. Atlas Free setup and its final screenshots are still pending until the team creates the cluster and updates the local `.env`.
 - The current ownership model gives each seeded board one owner. Multi-member board roles and invitations are later domain work.
 - Access tokens are stored in `localStorage`; refresh tokens, rotation, revocation, CSRF protection, and cookie-based sessions are not part of M2.
 - Automated client/server tests and GitHub Actions are M4 deliverables.
 - WebSocket updates, Docker Compose, and public deployment are M5 deliverables.
-- The Swagger/OpenAPI reference is included as an Assignment 02 bonus; the committed Postman collection remains the primary manual evidence set.
+- The committed Postman collection remains the primary manual API evidence set, with Swagger/OpenAPI available at `/api/docs/`.
 
 ## Release Tag
 
@@ -557,8 +591,17 @@ git checkout assignment-02-working-rest-api
 
 Return to current development with `git checkout main` after inspecting the tag.
 
+After Atlas evidence, final report updates, and the final merge are complete, create the Assignment 03 tag from the reviewed submission commit:
+
+```powershell
+git switch main
+git pull --ff-only
+git tag -a assignment-03-working-full-stack-application -m "Assignment 03 - Working full stack application (Frontend, Backend and Database)"
+git push origin main --follow-tags
+```
+
 ## Roadmap
 
-- M3: connect the completed MongoDB, PouchDB, and conflict-handling implementation to Atlas and capture final assignment evidence.
+- Assignment 03 finalization: connect the verified implementation to Atlas Free, capture the remaining database evidence, merge reviewed branches, and create the final tag.
 - M4: add Jest, React Testing Library, Supertest, and GitHub Actions.
 - M5: add Socket.io live updates, conflict detection, Docker Compose, public deployment, and final team reflection.
