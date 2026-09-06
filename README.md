@@ -6,7 +6,7 @@ Repository: [github.com/Dew3120/huddle](https://github.com/Dew3120/huddle)
 
 Assignment 02 release tag: `assignment-02-working-rest-api`
 
-Assignment 03 final tag: `assignment-03-working-full-stack-application` (created after the final merge and Atlas evidence are complete)
+Assignment 03 release tag: `assignment-03-working-full-stack-application`
 
 ## Table of Contents
 
@@ -39,7 +39,7 @@ Assignment 03 final tag: `assignment-03-working-full-stack-application` (created
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | Assignment 01 / M1 | Static React front-end skeleton                            | Complete and tagged as `assignment-01-static-front-end-skeleton` |
 | Assignment 02 / M2 | Working REST API with mock data integrated with the client | Complete and tagged as `assignment-02-working-rest-api`          |
-| Assignment 03 / M3 | MongoDB persistence, offline support, and conflict handling | Implementation verified locally; Atlas Free setup and final tag pending |
+| Assignment 03 / M3 | MongoDB persistence, offline support, and conflict handling | Complete; verified against Atlas Free and released as `assignment-03-working-full-stack-application` |
 | M4                 | Automated client/server tests and CI                       | Planned                                                          |
 | M5                 | Real-time sync, Docker, deployment, and final launch       | Planned                                                          |
 
@@ -158,6 +158,12 @@ MONGODB_URI=mongodb://127.0.0.1:27017/huddle
 ```
 
 For Atlas, replace only `MONGODB_URI` with the connection string copied from Atlas. Keep the database user password inside the URI private. Never commit `.env`, a real JWT secret, or an Atlas connection string.
+
+If the local network cannot resolve Atlas hostnames reliably, set `MONGODB_DNS_SERVERS` to trusted DNS resolvers. Huddle first uses the operating system resolver and uses these addresses only after a retryable DNS failure:
+
+```env
+MONGODB_DNS_SERVERS=1.1.1.1,8.8.8.8
+```
 
 ### 3. Seed the development database
 
@@ -482,7 +488,11 @@ The Assignment 03 evidence folder contains the frontend workflow, PouchDB offlin
 - [`19-mongodb-compass-tasks.png`](docs/screenshots/assignment-03/19-mongodb-compass-tasks.png) shows persisted task documents in MongoDB Compass.
 - [`20-swagger-api-reference.png`](docs/screenshots/assignment-03/20-swagger-api-reference.png) and [`21-backend-health-response.png`](docs/screenshots/assignment-03/21-backend-health-response.png) show the API documentation and connected backend health response.
 
-Atlas-specific screenshots are added after the Atlas Free cluster is created and the application is pointed at it.
+Atlas Free was verified with the application database user limited to `readWrite` on `huddle`. The following evidence contains no credentials:
+
+- [`22-atlas-free-cluster.png`](docs/screenshots/assignment-03/22-atlas-free-cluster.png) shows `Cluster0` on the Free tier in AWS Mumbai.
+- [`23-atlas-huddle-collections.png`](docs/screenshots/assignment-03/23-atlas-huddle-collections.png) shows the seeded `boards`, `tasks`, and `users` collections in Atlas Data Explorer.
+- [`24-atlas-connected-health.png`](docs/screenshots/assignment-03/24-atlas-connected-health.png) shows the backend reporting MongoDB as connected with ready state 1.
 
 ## Postman Evidence Index
 
@@ -565,7 +575,8 @@ The repeatable verification commands report `17/17` Assignment 02 checks and `9/
 
 ## Known Limitations
 
-- The local evidence was verified against MongoDB Community Server. Atlas Free setup and its final screenshots are still pending until the team creates the cluster and updates the local `.env`.
+- The full API verification was repeated against Atlas Free: Assignment 02 passed 17/17 checks and Assignment 03 passed 9/9 checks. The Atlas URI and password remain only in the ignored local `.env`.
+- Some local DNS configurations cannot resolve Atlas hostnames consistently. The optional `MONGODB_DNS_SERVERS` setting provides an application-scoped fallback without changing system DNS settings.
 - The current ownership model gives each seeded board one owner. Multi-member board roles and invitations are later domain work.
 - Access tokens are stored in `localStorage`; refresh tokens, rotation, revocation, CSRF protection, and cookie-based sessions are not part of M2.
 - Automated client/server tests and GitHub Actions are M4 deliverables.
@@ -591,17 +602,21 @@ git checkout assignment-02-working-rest-api
 
 Return to current development with `git checkout main` after inspecting the tag.
 
-After Atlas evidence, final report updates, and the final merge are complete, create the Assignment 03 tag from the reviewed submission commit:
+The reviewed Assignment 03 snapshot is identified by:
+
+```text
+assignment-03-working-full-stack-application
+```
+
+To inspect the submitted version later:
 
 ```powershell
-git switch main
-git pull --ff-only
-git tag -a assignment-03-working-full-stack-application -m "Assignment 03 - Working full stack application (Frontend, Backend and Database)"
-git push origin main --follow-tags
+git fetch --tags
+git checkout assignment-03-working-full-stack-application
 ```
 
 ## Roadmap
 
-- Assignment 03 finalization: connect the verified implementation to Atlas Free, capture the remaining database evidence, merge reviewed branches, and create the final tag.
+- Assignment 03: maintain the tagged Atlas-backed full-stack submission while later milestones continue on new branches.
 - M4: add Jest, React Testing Library, Supertest, and GitHub Actions.
 - M5: add Socket.io live updates, conflict detection, Docker Compose, public deployment, and final team reflection.

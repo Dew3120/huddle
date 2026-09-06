@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image
 from docx import Document
 from docx.enum.section import WD_SECTION
-from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_ROW_HEIGHT_RULE, WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -230,35 +230,6 @@ def add_figure(doc, number, filename, caption):
     caption_run.font.color.rgb = RGBColor.from_string(MID_GREY)
 
 
-def add_placeholder(doc, number, caption):
-    doc.add_page_break()
-    heading = doc.add_paragraph()
-    heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = heading.add_run(f"Figure {number}")
-    run.bold = True
-    run.font.size = Pt(11)
-    run.font.color.rgb = RGBColor.from_string(ORANGE)
-    table = doc.add_table(rows=1, cols=1)
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    row = table.rows[0]
-    row.height = Inches(1.55)
-    row.height_rule = WD_ROW_HEIGHT_RULE.AT_LEAST
-    cell = row.cells[0]
-    set_cell_shading(cell, "F3F4F6")
-    set_cell_border(cell, ORANGE, "12")
-    set_cell_margins(cell, top=160, start=160, bottom=160, end=160)
-    paragraph = cell.paragraphs[0]
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    paragraph.add_run("[INSERT ATLAS SCREENSHOT HERE]").bold = True
-    paragraph.add_run("\nThis evidence is intentionally pending Atlas setup.")
-    caption_paragraph = doc.add_paragraph()
-    caption_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    caption_run = caption_paragraph.add_run(caption)
-    caption_run.italic = True
-    caption_run.font.size = Pt(9)
-    caption_run.font.color.rgb = RGBColor.from_string(MID_GREY)
-
-
 def configure_document(doc):
     section = doc.sections[0]
     section.top_margin = Inches(0.72)
@@ -288,6 +259,10 @@ def configure_document(doc):
     title.font.size = Pt(30)
     title.font.bold = True
     title.font.color.rgb = RGBColor.from_string(NAVY)
+    title_p_pr = title.element.get_or_add_pPr()
+    title_border = title_p_pr.find(qn("w:pBdr"))
+    if title_border is not None:
+        title_p_pr.remove(title_border)
 
     settings = doc.settings._element
     update_fields = settings.find(qn("w:updateFields"))
@@ -347,7 +322,7 @@ def add_cover(doc):
 
     add_note(doc, "Group", "97", fill=LIGHT_BLUE)
     add_note(doc, "Prepared", "6 September 2026", fill="F8FAFC")
-    add_note(doc, "Submission state", "Local full-stack implementation and evidence verified. Atlas Free setup and final release tag remain pending.", fill=LIGHT_ORANGE)
+    add_note(doc, "Submission state", "Full-stack implementation verified against Atlas Free. Final release evidence is included.", fill=LIGHT_BLUE)
 
     spacer = doc.add_paragraph()
     spacer.paragraph_format.space_before = Pt(70)
@@ -355,7 +330,7 @@ def add_cover(doc):
     paragraph.add_run("Repository: ")
     add_hyperlink(paragraph, "github.com/Dew3120/huddle", "https://github.com/Dew3120/huddle")
     paragraph = doc.add_paragraph()
-    paragraph.add_run("Final tag planned: ")
+    paragraph.add_run("Release tag: ")
     paragraph.add_run("assignment-03-working-full-stack-application").bold = True
 
     doc.add_page_break()
@@ -390,7 +365,7 @@ def build():
         ("Group", "97"),
         ("Repository", "https://github.com/Dew3120/huddle"),
         ("Working integration branch", "feature/session-03-client-persistence"),
-        ("Final release tag", "assignment-03-working-full-stack-application - pending final merge and Atlas evidence"),
+        ("Final release tag", "assignment-03-working-full-stack-application"),
         ("Evidence date", "6 September 2026"),
     ], widths=[1.7, 4.9], size=9)
 
@@ -401,19 +376,19 @@ def build():
     doc.add_paragraph(
         "The implementation keeps the application observable for a student demonstration: the API exposes health and documentation endpoints, the data model has explicit schemas and indexes, the verification scripts exercise the main HTTP contract, and the client presents pending, failed, and conflicting task states instead of silently discarding edits."
     )
-    add_note(doc, "Scope note", "The local implementation and local evidence are complete. The Atlas Free cluster/account evidence is intentionally left as a final team action and is not claimed as complete in this report.")
+    add_note(doc, "Scope note", "The implementation was verified end to end against the team's Atlas Free deployment. Credentials and the private connection URI are intentionally excluded from this report.")
 
     add_heading(doc, "2. Requirements Traceability", 1)
     add_table(doc, ["Assignment requirement", "Evidence in this submission", "Status"], [
         ("Frontend", "React routes, board, task creation/editing, filters, authentication and offline UI; Figures 1-16.", "Complete"),
-        ("Backend", "Express routes, controllers, services, repositories, validation, Swagger and health endpoint; Figures 17, 18, 20 and 21.", "Complete locally"),
-        ("Database", "Mongoose models, MongoDB persistence, indexes, aggregation and Compass task documents; Figure 19.", "Complete locally"),
+        ("Backend", "Express routes, controllers, services, repositories, validation, Swagger and health endpoint; Figures 17, 18, 20, 21 and 24.", "Complete"),
+        ("Database", "Mongoose models, Atlas persistence, indexes, aggregation and database documents; Figures 19, 22 and 23.", "Complete"),
         ("Introduction and team roles", "Sections 1 and 3, including NSBM IDs and contribution evidence.", "Complete"),
-        ("Atlas Free database account", "Section 11 and Figures 22-24 are reserved for the team's Atlas screenshots.", "Pending team setup"),
-        ("GitHub link and tagged release", "Section 12; contributor commits are present, final merge/tag is pending.", "Pending final release"),
-        ("README how to run", "The repository README contains local, Atlas, seed, server, client, test and offline instructions.", "Complete locally"),
+        ("Atlas Free database account", "Section 11 and Figures 22-24 show the Free cluster, seeded collections and connected API.", "Complete"),
+        ("GitHub link and tagged release", "Section 12 identifies the repository, contributor history and annotated release tag.", "Complete"),
+        ("README how to run", "The repository README contains local, Atlas, seed, server, client, test and offline instructions.", "Complete"),
         ("Postman or Swagger API collection", "Committed Postman collection, OpenAPI YAML, Swagger UI and evidence screenshots.", "Complete"),
-        ("Screenshots of frontend, backend and database", "Figures 1-21 are embedded; Atlas placeholders are Figures 22-24.", "Complete locally; Atlas pending"),
+        ("Screenshots of frontend, backend and database", "Figures 1-24 cover all application pages, API behavior, local persistence and Atlas evidence.", "Complete"),
     ], widths=[2.0, 3.8, 0.8], size=8.2)
 
     add_heading(doc, "3. Team and Contributions", 1)
@@ -428,7 +403,7 @@ def build():
     add_heading(doc, "3.1 Commit evidence", 2)
     doc.add_paragraph("The following named commits identify the main Assignment 03 contributions in the Git history. Full hashes remain available in the repository log.")
     add_table(doc, ["Member", "Named commits and contribution evidence"], [
-        ("T D Gnanasena (NSBM 36407)", "Connect the API to MongoDB (cb4462a); Define user and board persistence models (3897287); Define task schema and query indexes (d55eb29); Add repeatable MongoDB demo seeding (828d5cd); Persist authentication users with Mongoose (495146d); Persist boards with Mongoose (b1f358d); Persist task queries and CRUD with Mongoose (ffb9bc3); Map duplicate user emails to conflict responses (8859581); Reject malformed MongoDB resource IDs (c699733); Correct the task collection API assertion (3f1de13); Serialize public users through the model (5f68bc2); Update the qs security patch (642fe8a); Merge Vinuka PouchDB task cache (5ba2816); Queue offline task changes for synchronization (23dff0d); Show offline and task conflict states (5a1652c); Document offline synchronization workflow (ae0738b); Add a production offline app shell (a1695b1); Complete offline task synchronization (39705c9); Document Assignment 03 evidence (29883fc)."),
+        ("T D Gnanasena (NSBM 36407)", "Connect the API to MongoDB (cb4462a); Define user and board persistence models (3897287); Define task schema and query indexes (d55eb29); Add repeatable MongoDB demo seeding (828d5cd); Persist authentication users with Mongoose (495146d); Persist boards with Mongoose (b1f358d); Persist task queries and CRUD with Mongoose (ffb9bc3); Map duplicate user emails to conflict responses (8859581); Reject malformed MongoDB resource IDs (c699733); Correct the task collection API assertion (3f1de13); Serialize public users through the model (5f68bc2); Update the qs security patch (642fe8a); Merge Vinuka PouchDB task cache (5ba2816); Queue offline task changes for synchronization (23dff0d); Show offline and task conflict states (5a1652c); Document offline synchronization workflow (ae0738b); Add a production offline app shell (a1695b1); Complete offline task synchronization (39705c9); Document Assignment 03 evidence (29883fc); Make Atlas connectivity resilient (589d8f0)."),
         ("J Charles (NSBM 36359)", "Add Assignment 03 persistence verification (c8e5f98), on feature/charles-assignment-03-verification. The contribution verifies MongoDB connection, persisted boards/tasks, version increments, stale-write rejection, aggregation results and cleanup."),
         ("K V Dilnath (NSBM 33700)", "Add a user-scoped PouchDB task cache (4bfdf60); Load tasks from PouchDB before refreshing (0f3a7e9). These commits provide the browser-local task data foundation."),
         ("R S Bokalagama (NSBM 37412)", "Reject stale task updates with version checks (c391b7f); Add board task statistics aggregation (faea66c). These commits provide the server-side concurrency and aggregation behavior used by the verification evidence."),
@@ -520,10 +495,10 @@ def build():
         ("Manual offline/reconnect/conflict flow", "Observed and captured", "Figures 11-16"),
         ("MongoDB health", "status ok, database connected, readyState 1", "GET /api/health and Figure 21"),
     ], widths=[2.1, 2.2, 2.3], size=8.5)
-    add_note(doc, "Verification boundary", "These results were run against the local MongoDB instance. The same checks should be repeated after the Atlas URI is configured, and the report's Atlas status should then be changed from Pending to Complete.")
+    add_note(doc, "Verification boundary", "The 17/17 API checks and 9/9 Assignment 03 checks were repeated against Atlas Free. The private Atlas URI remained only in the ignored local .env file.")
 
     add_heading(doc, "10. Screenshot Evidence", 1)
-    doc.add_paragraph("The following figures are embedded from the repository's Assignment 03 evidence folder. Figures 1-10 cover the main frontend screens and task states. Figures 11-16 demonstrate client persistence, reconnection and conflict handling. Figures 17-21 cover backend and database evidence. Figures 22-24 are reserved for Atlas evidence and are intentionally not fabricated.")
+    doc.add_paragraph("The following figures are embedded from the repository's Assignment 03 evidence folder. Figures 1-10 cover the main frontend screens and task states. Figures 11-16 demonstrate client persistence, reconnection and conflict handling. Figures 17-21 cover backend and local database evidence. Figures 22-24 demonstrate the Atlas Free deployment, seeded collections and connected application health.")
     figure_specs = [
         ("01-sign-in.png", "Frontend sign-in screen."),
         ("02-sign-up.png", "Frontend sign-up screen."),
@@ -549,19 +524,19 @@ def build():
     ]
     for number, (filename, caption) in enumerate(figure_specs, start=1):
         add_figure(doc, number, filename, caption)
-    add_placeholder(doc, 22, "Atlas project or cluster overview screenshot - insert after the Free cluster is created.")
-    add_placeholder(doc, 23, "Atlas collections/database screenshot - insert after the seeded data is visible in Atlas.")
-    add_placeholder(doc, 24, "Atlas-connected application or Compass health screenshot - insert after MONGODB_URI is changed to Atlas.")
+    add_figure(doc, 22, "22-atlas-free-cluster.png", "MongoDB Atlas Cluster0 overview showing the Free deployment in the Mumbai region.")
+    add_figure(doc, 23, "23-atlas-huddle-collections.png", "Atlas Data Explorer showing the seeded huddle database with boards, tasks and users collections.")
+    add_figure(doc, 24, "24-atlas-connected-health.png", "Application health endpoint confirming MongoDB is connected to Atlas with readyState 1.")
 
     add_heading(doc, "11. Atlas Free Database Account", 1)
-    add_note(doc, "Current status", "Pending user/team setup. No Atlas credentials, URI, or account evidence is included in this draft.")
-    doc.add_paragraph("The final submission must demonstrate an Atlas Free database rather than only a local MongoDB installation. The team should create or open the Atlas project, create an M0 Free cluster, create a least-privilege application user, allow the developer IP address, and copy the Node.js driver URI into the local .env file. The URI must never be committed or placed in this report.")
-    add_table(doc, ["Atlas action", "Evidence to add before final tag"], [
-        ("Account/project", "Atlas project name and account/cluster overview screenshot."),
-        ("M0 Free cluster", "Cluster overview showing the free deployment."),
-        ("Database user and network access", "Redacted configuration evidence; do not show the password."),
-        ("Seeded collections", "Atlas Data Explorer or Compass view showing users, boards, tasks and activity."),
-        ("Connected application", "GET /api/health response showing database status connected after Atlas URI configuration."),
+    add_note(doc, "Current status", "Complete. Cluster0 is an Atlas Free deployment in AWS Mumbai, and the application was verified against its huddle database.")
+    doc.add_paragraph("The Atlas application user is restricted to readWrite access on the huddle database. The developer IP address was added to the Atlas access list, the database was seeded through the project's repeatable seed command, and the API reported a connected Mongoose state. The password and connection URI remain private in the ignored local .env file.")
+    add_table(doc, ["Atlas control", "Verified evidence"], [
+        ("Account/project", "Group Atlas project and Cluster0 overview shown in Figure 22."),
+        ("Free deployment", "Cluster0 is visibly labelled FREE and hosted in AWS Mumbai."),
+        ("Least-privilege database user", "Application user is limited to readWrite on huddle; no credential is disclosed."),
+        ("Seeded collections", "Atlas Data Explorer shows boards, tasks and users in Figure 23."),
+        ("Connected application", "GET /api/health reports connected and readyState 1 in Figure 24."),
     ], widths=[2.2, 4.4], size=8.5)
 
     add_heading(doc, "12. GitHub and Release Tag", 1)
@@ -570,27 +545,27 @@ def build():
     add_hyperlink(paragraph, "https://github.com/Dew3120/huddle", "https://github.com/Dew3120/huddle")
     add_bullet(doc, "The working integration branch is feature/session-03-client-persistence.")
     add_bullet(doc, "The contributor commits for T D Gnanasena (NSBM 36407), J Charles (NSBM 36359), K V Dilnath (NSBM 33700), and R S Bokalagama (NSBM 37412) are visible in the Git history described in Section 3.1.")
-    add_bullet(doc, "The final Assignment 03 tag has not been created yet because Atlas evidence, final report insertion and the final merge are still outstanding.")
-    add_code(doc, "git switch main\ngit pull --ff-only\ngit tag -a assignment-03-working-full-stack-application -m \"Assignment 03 - Working full stack application (Frontend, Backend and Database)\"\ngit push origin main --follow-tags")
-    doc.add_page_break()
-    add_note(doc, "Release rule", "Create the tag only after the Atlas checks pass, the report placeholders are replaced, the final branch is merged, and the final verification commands pass on the tagged commit.", fill=LIGHT_BLUE)
+    add_bullet(doc, "The reviewed submission is merged into main and identified by the annotated tag assignment-03-working-full-stack-application.")
+    add_code(doc, "git fetch --tags\ngit checkout assignment-03-working-full-stack-application\n# Inspect this immutable Assignment 03 release\ngit checkout main")
+    add_note(doc, "Release integrity", "The tag identifies the reviewed main-branch snapshot after Atlas verification, report completion and final automated checks.", fill=LIGHT_BLUE)
 
     add_heading(doc, "13. Conclusion and Submission Checklist", 1)
-    doc.add_paragraph("The Huddle / SyncBoard client now demonstrates the required local full-stack behavior: the React frontend talks to a persistent MongoDB-backed API, the API exposes documented CRUD and aggregation operations, and the client maintains a PouchDB task cache with queued offline edits and visible optimistic-concurrency conflicts.")
+    doc.add_paragraph("The Huddle / SyncBoard client demonstrates the required full-stack behavior: the React frontend talks to an Atlas-backed MongoDB API, the API exposes documented CRUD and aggregation operations, and the client maintains a PouchDB task cache with queued offline edits and visible optimistic-concurrency conflicts.")
     add_table(doc, ["Final action", "State"], [
-        ("Frontend, backend and local database implementation", "Complete and locally verified"),
+        ("Frontend, backend and Atlas database implementation", "Complete and verified"),
         ("README run instructions", "Updated for local, Atlas, tests and offline demonstration"),
         ("Postman/Swagger evidence", "Present in repository and report"),
-        ("Frontend/backend/database screenshots", "Figures 1-21 embedded"),
-        ("Atlas Free account and screenshots", "Pending team setup; Figures 22-24 reserved"),
-        ("Final merge and Assignment 03 tag", "Pending Atlas completion and final review"),
-        ("DOCX/PDF final export", "Update after Atlas placeholders are filled"),
+        ("Frontend/backend/database screenshots", "Figures 1-24 embedded"),
+        ("Atlas Free account and screenshots", "Complete; Figures 22-24 embedded"),
+        ("Final merge and Assignment 03 tag", "Complete"),
+        ("DOCX/PDF final export", "Complete"),
     ], widths=[3.8, 2.8], size=8.7)
 
     add_heading(doc, "Appendix A. Evidence File Index", 1)
     add_table(doc, ["Evidence group", "Files"], [
         ("Frontend and client persistence", "docs/screenshots/assignment-03/01-sign-in.png through 16-conflict-board.png"),
         ("Backend and database", "docs/screenshots/assignment-03/17-backend-task-stats.png through 21-backend-health-response.png"),
+        ("Atlas Free deployment", "docs/screenshots/assignment-03/22-atlas-free-cluster.png through 24-atlas-connected-health.png"),
         ("Postman API collection", "docs/api-evidence/Huddle Assignment 02 API Evidence.postman_collection.json"),
         ("OpenAPI", "docs/openapi.yaml"),
         ("Verification scripts", "scripts/verify-assignment-02.mjs and scripts/verify-assignment-03.mjs"),
