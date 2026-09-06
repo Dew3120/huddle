@@ -195,7 +195,7 @@ export async function queueTaskCreate(cache, task) {
   });
 }
 
-export async function queueTaskUpdate(cache, taskId, changes, baseVersion) {
+export async function queueTaskUpdate(cache, taskId, changes, baseVersion, baseTask) {
   const documents = await readMutationDocuments(cache);
   const queuedCreate = documents.find(
     (document) => document.taskId === taskId && document.type === 'create',
@@ -239,6 +239,7 @@ export async function queueTaskUpdate(cache, taskId, changes, baseVersion) {
     taskId,
     changes,
     baseVersion,
+    ...(baseTask ? { baseTask } : {}),
     state: 'pending',
     createdAt: now,
     updatedAt: now,

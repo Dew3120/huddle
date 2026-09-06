@@ -21,9 +21,10 @@ export class ApiError extends Error {
 
 export function isNetworkError(error) {
   return (
-    (typeof navigator !== 'undefined' && !navigator.onLine) ||
+    (typeof navigator !== 'undefined' && navigator.onLine === false) ||
     error instanceof TypeError ||
-    error?.status === 0
+    error?.status === 0 ||
+    [502, 503, 504].includes(error?.status)
   );
 }
 

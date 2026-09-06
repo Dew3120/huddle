@@ -19,6 +19,28 @@ function createPayload(task) {
   };
 }
 
+export function canMergeTaskChanges(baseTask, currentTask, changes) {
+  return Boolean(baseTask && currentTask) && Object.keys(changes).every(
+    (field) => Object.hasOwn(baseTask, field) &&
+      (currentTask[field] === baseTask[field] || currentTask[field] === changes[field]),
+  );
+}
+
+export async function updateTaskWithMerge(taskId, changes, version, baseTask) {
+  try {
+    return await updateTask(taskId, { ...changes, version });
+  } catch (error) {
+    const current = error.details?.current;
+    if (error.code !== 'TASK_CONFLICT' ||
+        !canMergeTaskChanges(baseTask, current, changes)) {
+      throw error;
+    }
+
+    // Retry once against the server version; another writer can still cause 409.
+    return updateTask(taskId, { ...changes, version: current.version });
+  }
+}
+
 async function markCachedTask(cache, taskId, syncState) {
   const task = await readCachedTask(cache, taskId);
 
@@ -52,10 +74,12 @@ export async function synchronizeTaskMutations(cache) {
       }
 
       if (mutation.type === 'update') {
-        const task = await updateTask(mutation.taskId, {
-          ...mutation.changes,
-          version: mutation.baseVersion,
-        });
+        const task = await updateTaskWithMerge(
+          mutation.taskId,
+          mutation.changes,
+          mutation.baseVersion,
+          mutation.baseTask,
+        );
         await saveCachedTask(cache, task);
         outcomes.push({ type: 'updated', task });
       }
@@ -140,7 +164,7 @@ export function mergeServerTasksWithMutations(
   const serverTaskIds = new Set(mergedTasks.map((task) => task.id));
 
   mutations
-    .filter((mutation) => mutation.type === 'create')
+    .filter((mutation) => mutation.type !== 'delete')
     .forEach((mutation) => {
       const task = cachedById.get(mutation.taskId);
 

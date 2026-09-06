@@ -66,13 +66,15 @@ test('folds offline edits into a queued local create', async () => {
 
 test('compacts server-task edits and lets delete supersede them', async () => {
   const cache = createTestCache();
+  const baseTask = { id: 'task-1', title: 'Original', status: 'todo', version: 2 };
 
-  await queueTaskUpdate(cache, 'task-1', { title: 'Changed' }, 2);
-  await queueTaskUpdate(cache, 'task-1', { status: 'done' }, 2);
+  await queueTaskUpdate(cache, 'task-1', { title: 'Changed' }, 2, baseTask);
+  await queueTaskUpdate(cache, 'task-1', { status: 'done' }, 2, { ...baseTask, title: 'Changed' });
 
   const [update] = await readTaskMutations(cache);
   assert.equal(update.type, 'update');
   assert.equal(update.baseVersion, 2);
+  assert.deepEqual(update.baseTask, baseTask);
   assert.deepEqual(update.changes, {
     title: 'Changed',
     status: 'done',

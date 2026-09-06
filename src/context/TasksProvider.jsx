@@ -4,7 +4,6 @@ import {
   createTask,
   deleteTask as deleteTaskRequest,
   getTasks,
-  updateTask as updateTaskRequest,
 } from '../api/tasks.js';
 import {
   closeTaskCache,
@@ -25,6 +24,7 @@ import {
 import {
   mergeServerTasksWithMutations,
   synchronizeTaskMutations,
+  updateTaskWithMerge,
 } from '../services/taskSynchronization.js';
 import { tasksReducer } from '../utils/tasksReducer.js';
 import { TasksContext } from './TasksContext.js';
@@ -313,6 +313,7 @@ export default function TasksProvider({ children, userId }) {
       task.id,
       changes,
       task.version,
+      task,
     );
 
     await saveCachedTask(cache, queuedTask);
@@ -331,16 +332,24 @@ export default function TasksProvider({ children, userId }) {
       return null;
     }
 
-    if (!browserIsOnline() || task.id.startsWith('local:')) {
+    changes = Object.fromEntries(
+      Object.entries(changes).filter(([field, value]) => task[field] !== value),
+    );
+
+    if (Object.keys(changes).length === 0) {
+      return task;
+    }
+
+    if (!browserIsOnline() || task.id.startsWith('local:') ||
+        mutations.some((mutation) => mutation.taskId === taskId)) {
       const { queuedTask } = await queueOfflineUpdate(task, changes);
       return queuedTask;
     }
 
     try {
-      const updatedTask = await updateTaskRequest(taskId, {
-        ...changes,
-        version: task.version,
-      });
+      const updatedTask = await updateTaskWithMerge(
+        taskId, changes, task.version, task,
+      );
       const cache = cacheRef.current;
 
       dispatch({
