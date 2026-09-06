@@ -1,53 +1,235 @@
-import { tasks } from '../data/tasks.js';
+import mongoose from 'mongoose';
+import { Board } from '../models/Board.js';
+import { Task } from '../models/Task.js';
 
-export function findAll() {
-  return tasks;
-}
+const sortFields = ['title', 'assignee', 'status', 'dueDate'];
 
-export function findAllByOwner(ownerId) {
-  return tasks.filter((task) => task.ownerId === ownerId);
-}
-
-export function findById(id) {
-  return tasks.find((task) => task.id === id) ?? null;
-}
-
-export function findByIdForOwner(id, ownerId) {
-  return tasks.find((task) => task.id === id && task.ownerId === ownerId) ?? null;
-}
-
-export function create(task) {
-  tasks.push(task);
-  return task;
-}
-
-export function updateForOwner(id, ownerId, updates) {
-  const taskIndex = tasks.findIndex(
-    (task) => task.id === id && task.ownerId === ownerId,
-  );
-
-  if (taskIndex === -1) {
-    return null;
+function idFilter(id) {
+  if (mongoose.isValidObjectId(id)) {
+    return { _id: id };
   }
 
-  const updatedTask = {
-    ...tasks[taskIndex],
-    ...updates,
+  return { legacyId: id };
+}
+
+function boardIdFilter(id) {
+  if (mongoose.isValidObjectId(id)) {
+    return { _id: id };
+  }
+
+  return { legacyId: id };
+}
+
+function collectionFilter({ status, assignee } = {}) {
+  const filter = {};
+
+  if (status) {
+    filter.status = status;
+  }
+
+  if (assignee) {
+    filter.assignee = new RegExp(
+      `^${assignee.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+      'i',
+    );
+  }
+
+  return filter;
+}
+
+function collectionSort(sort = 'dueDate') {
+  const descending = sort.startsWith('-');
+  const requestedField = descending ? sort.slice(1) : sort;
+  const field = sortFields.includes(requestedField) ? requestedField : 'dueDate';
+
+  return {
+    [field]: descending ? -1 : 1,
+    _id: 1,
+  };
+}
+
+async function findOwnedBoardIds(ownerId) {
+  return Board.find({ ownerId }).distinct('_id');
+}
+
+async function findOwnedBoard(boardId, ownerId) {
+  return Board.findOne({
+    ...boardIdFilter(boardId),
+    ownerId,
+  });
+}
+
+async function findPage(filter, query = {}) {
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 20;
+  const completeFilter = {
+    ...filter,
+    ...collectionFilter(query),
   };
 
-  tasks[taskIndex] = updatedTask;
-  return updatedTask;
+  const [tasks, total] = await Promise.all([
+    Task.find(completeFilter)
+      .sort(collectionSort(query.sort))
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Task.countDocuments(completeFilter),
+  ]);
+
+  return { tasks, total };
 }
 
-export function removeForOwner(id, ownerId) {
-  const taskIndex = tasks.findIndex(
-    (task) => task.id === id && task.ownerId === ownerId,
-  );
+export async function findAll() {
+  return Task.find().sort({ createdAt: 1, _id: 1 });
+}
 
-  if (taskIndex === -1) {
-    return false;
+export async function findAllByOwner(ownerId) {
+  const boardIds = await findOwnedBoardIds(ownerId);
+  return Task.find({ boardId: { $in: boardIds } });
+}
+
+export async function findPageByOwner(ownerId, query) {
+  const boardIds = await findOwnedBoardIds(ownerId);
+  return findPage({ boardId: { $in: boardIds } }, query);
+}
+
+export async function findAllByBoardForOwner(boardId, ownerId) {
+  const board = await findOwnedBoard(boardId, ownerId);
+
+  if (!board) {
+    return [];
   }
 
-  tasks.splice(taskIndex, 1);
-  return true;
+  return Task.find({ boardId: board._id });
+}
+
+export async function findPageByBoard(boardId, query) {
+  return findPage({ boardId }, query);
+}
+
+export async function countByBoardForOwner(boardId, ownerId) {
+  const board = await findOwnedBoard(boardId, ownerId);
+
+  if (!board) {
+    return 0;
+  }
+
+  return Task.countDocuments({ boardId: board._id });
+}
+
+export async function findById(id) {
+  return Task.findOne(idFilter(id));
+}
+
+export async function findByIdForOwner(id, ownerId) {
+  const boardIds = await findOwnedBoardIds(ownerId);
+
+  return Task.findOne({
+    ...idFilter(id),
+    boardId: { $in: boardIds },
+  });
+}
+
+export async function create(task) {
+  return Task.create(task);
+}
+
+export async function updateForOwner(id, ownerId, updates) {
+  const boardIds = await findOwnedBoardIds(ownerId);
+  const filter = {
+    ...idFilter(id),
+    boardId: { $in: boardIds },
+  };
+
+  if (updates.version !== undefined) {
+    filter.version = updates.version;
+  }
+
+  const { version, ...taskUpdates } = updates;
+
+  return Task.findOneAndUpdate(
+    filter,
+    {
+      $set: taskUpdates,
+      $inc: { version: 1 },
+    },
+    {
+      returnDocument: 'after',
+      runValidators: true,
+    },
+  );
+}
+
+export async function removeForOwner(id, ownerId) {
+  const boardIds = await findOwnedBoardIds(ownerId);
+  const task = await Task.findOneAndDelete({
+    ...idFilter(id),
+    boardId: { $in: boardIds },
+  });
+
+  return Boolean(task);
+}
+
+export async function getStatsByBoard(boardId) {
+  const [stats] = await Task.aggregate([
+    {
+      $match: {
+        boardId,
+      },
+    },
+    {
+      $facet: {
+        byStatus: [
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              status: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: {
+              status: 1,
+            },
+          },
+        ],
+        overdueByAssignee: [
+          {
+            $match: {
+              dueDate: { $lt: new Date() },
+              status: { $ne: 'done' },
+            },
+          },
+          {
+            $group: {
+              _id: '$assignee',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              assignee: '$_id',
+              count: 1,
+            },
+          },
+          {
+            $sort: {
+              assignee: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return {
+    byStatus: stats?.byStatus ?? [],
+    overdueByAssignee: stats?.overdueByAssignee ?? [],
+  };
 }

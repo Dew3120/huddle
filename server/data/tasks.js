@@ -6,6 +6,7 @@ export const tasks = [
     status: 'todo',
     dueDate: '2026-08-27',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-002',
@@ -14,6 +15,7 @@ export const tasks = [
     status: 'todo',
     dueDate: '2026-08-28',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-003',
@@ -22,6 +24,7 @@ export const tasks = [
     status: 'todo',
     dueDate: '2026-08-29',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-004',
@@ -30,6 +33,7 @@ export const tasks = [
     status: 'in-progress',
     dueDate: '2026-08-30',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-005',
@@ -38,6 +42,7 @@ export const tasks = [
     status: 'in-progress',
     dueDate: '2026-08-31',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-006',
@@ -46,6 +51,7 @@ export const tasks = [
     status: 'in-progress',
     dueDate: '2026-09-01',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-007',
@@ -54,6 +60,7 @@ export const tasks = [
     status: 'done',
     dueDate: '2026-09-02',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-008',
@@ -62,6 +69,7 @@ export const tasks = [
     status: 'done',
     dueDate: '2026-09-03',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-009',
@@ -70,6 +78,7 @@ export const tasks = [
     status: 'done',
     dueDate: '2026-09-04',
     ownerId: 'user-001',
+    boardId: 'board-001',
   },
   {
     id: 'task-010',
@@ -78,5 +87,6 @@ export const tasks = [
     status: 'todo',
     dueDate: '2026-09-05',
     ownerId: 'user-002',
+    boardId: 'board-002',
   },
 ];

@@ -1,40 +1,40 @@
-import { randomUUID } from 'node:crypto';
-
-const users = [
-  {
-    id: 'user-001',
-    email: 'user1@nsbm.lk',
-    passwordHash: '$2b$10$ln1jyKAg/gV3YMCugLhvoOCqhd6rJqPNcH2fhqwnp..ciKm9I3bFq',
-  },
-  {
-    id: 'user-002',
-    email: 'user2@nsbm.lk',
-    passwordHash: '$2b$10$ln1jyKAg/gV3YMCugLhvoOCqhd6rJqPNcH2fhqwnp..ciKm9I3bFq',
-  },
-];
+import mongoose from 'mongoose';
+import { User } from '../models/User.js';
 
 export async function findByEmail(email) {
-  return users.find((user) => user.email === email.toLowerCase()) ?? null;
+  return User.findOne({ email: email.toLowerCase() });
 }
 
 export async function findById(id) {
-  return users.find((user) => user.id === id) ?? null;
+  if (mongoose.isValidObjectId(id)) {
+    return User.findById(id);
+  }
+
+  return User.findOne({ legacyId: id });
 }
 
 export async function create({ email, passwordHash }) {
-  const user = {
-    id: randomUUID(),
+  return User.create({
     email: email.toLowerCase(),
     passwordHash,
-  };
-
-  users.push(user);
-  return user;
+  });
 }
 
 export function publicUser(user) {
-  return {
-    id: user.id,
-    email: user.email,
+  const value = user.toJSON ? user.toJSON() : user;
+  const publicValue = {
+    id: value.id,
+    email: value.email,
   };
+
+  if (value.name) {
+    publicValue.name = value.name;
+  }
+
+  Object.defineProperty(publicValue, 'databaseId', {
+    value: user._id?.toString() ?? value.id,
+    enumerable: false,
+  });
+
+  return publicValue;
 }

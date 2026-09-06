@@ -1,14 +1,42 @@
-import { randomUUID } from 'node:crypto';
+import * as boardRepository from '../repositories/boardRepository.js';
 import * as taskRepository from '../repositories/taskRepository.js';
-import { NotFoundError } from '../utils/AppError.js';
-import { publicTask, queryTaskCollection } from '../utils/taskCollection.js';
+import { NotFoundError, ConflictError } from '../utils/AppError.js';
+import { publicTask } from '../utils/taskCollection.js';
 
-export function listTasks(query = {}, user) {
-  return queryTaskCollection(taskRepository.findAllByOwner(user.id), query);
+async function findOrCreateDefaultBoard(user) {
+  const existingBoard = await boardRepository.findFirstByOwner(user.databaseId);
+
+  if (existingBoard) {
+    return existingBoard;
+  }
+
+  return boardRepository.create({
+    name: 'My Task Board',
+    ownerId: user.databaseId,
+    members: [{ userId: user.databaseId, role: 'owner' }],
+    columns: [
+      { title: 'To Do', position: 0 },
+      { title: 'In Progress', position: 1 },
+      { title: 'Done', position: 2 },
+    ],
+  });
 }
 
-export function getTaskById(id, user) {
-  const task = taskRepository.findByIdForOwner(id, user.id);
+export async function listTasks(query = {}, user) {
+  const result = await taskRepository.findPageByOwner(user.databaseId, query);
+
+  return {
+    data: result.tasks.map(publicTask),
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total: result.total,
+    },
+  };
+}
+
+export async function getTaskById(id, user) {
+  const task = await taskRepository.findByIdForOwner(id, user.databaseId);
 
   if (!task) {
     throw new NotFoundError('Task');
@@ -17,28 +45,55 @@ export function getTaskById(id, user) {
   return publicTask(task);
 }
 
-export function createTask(taskInput, user) {
+export async function createTask(taskInput, user) {
+  const board = await findOrCreateDefaultBoard(user);
   const task = {
-    id: randomUUID(),
     ...taskInput,
-    ownerId: user.id,
+    boardId: board._id,
   };
 
-  return publicTask(taskRepository.create(task));
+  return publicTask(await taskRepository.create(task));
 }
 
-export function updateTask(id, updates, user) {
-  const task = taskRepository.updateForOwner(id, user.id, updates);
+export async function updateTask(id, updates, user) {
+  const task = await taskRepository.updateForOwner(
+    id,
+    user.databaseId,
+    updates,
+  );
 
-  if (!task) {
+  if (task) {
+    return publicTask(task);
+  }
+
+  const current = await taskRepository.findByIdForOwner(
+    id,
+    user.databaseId,
+  );
+
+  if (!current) {
     throw new NotFoundError('Task');
   }
 
-  return publicTask(task);
+  if (updates.version !== undefined) {
+    throw new ConflictError(
+      'Task was updated by someone else',
+      'TASK_CONFLICT',
+      {
+        current: publicTask(current),
+        yourVersion: updates.version,
+      },
+    );
+  }
+
+  throw new NotFoundError('Task');
 }
 
-export function deleteTask(id, user) {
-  const wasDeleted = taskRepository.removeForOwner(id, user.id);
+export async function deleteTask(id, user) {
+  const wasDeleted = await taskRepository.removeForOwner(
+    id,
+    user.databaseId,
+  );
 
   if (!wasDeleted) {
     throw new NotFoundError('Task');

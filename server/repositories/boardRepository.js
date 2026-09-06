@@ -1,14 +1,29 @@
-import { boards } from '../data/boards.js';
+import mongoose from 'mongoose';
+import { Board } from '../models/Board.js';
 
-export function findAllByOwner(ownerId) {
-  return boards.filter((board) => board.ownerId === ownerId);
+function idFilter(id) {
+  if (mongoose.isValidObjectId(id)) {
+    return { _id: id };
+  }
+
+  return { legacyId: id };
 }
 
-export function findByIdForOwner(id, ownerId) {
-  return boards.find((board) => board.id === id && board.ownerId === ownerId) ?? null;
+export async function findAllByOwner(ownerId) {
+  return Board.find({ ownerId }).sort({ createdAt: 1, _id: 1 });
 }
 
-export function create(board) {
-  boards.push(board);
-  return board;
+export async function findFirstByOwner(ownerId) {
+  return Board.findOne({ ownerId }).sort({ createdAt: 1, _id: 1 });
+}
+
+export async function findByIdForOwner(id, ownerId) {
+  return Board.findOne({
+    ...idFilter(id),
+    ownerId,
+  });
+}
+
+export async function create(board) {
+  return Board.create(board);
 }

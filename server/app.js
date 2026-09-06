@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import { config } from './config.js';
 import { authenticate } from './middleware/authenticate.js';
@@ -45,10 +46,21 @@ app.use(
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (req, res) => {
+  const connectionStates = [
+    'disconnected',
+    'connected',
+    'connecting',
+    'disconnecting',
+  ];
+
   res.json({
     data: {
       status: 'ok',
       uptime: process.uptime(),
+      database: {
+        status: connectionStates[mongoose.connection.readyState] ?? 'unknown',
+        readyState: mongoose.connection.readyState,
+      },
     },
   });
 });

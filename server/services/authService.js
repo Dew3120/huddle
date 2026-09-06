@@ -12,7 +12,17 @@ export async function register({ email, password }) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await userRepository.create({ email, passwordHash });
+  let user;
+
+  try {
+    user = await userRepository.create({ email, passwordHash });
+  } catch (error) {
+    if (error?.code === 11000) {
+      throw new ConflictError('Email is already registered', 'EMAIL_EXISTS');
+    }
+
+    throw error;
+  }
 
   return userRepository.publicUser(user);
 }
@@ -32,7 +42,7 @@ export async function login({ email, password }) {
 
   const token = jwt.sign(
     {
-      sub: user.id,
+      sub: user._id.toString(),
       email: user.email,
     },
     config.jwtSecret,

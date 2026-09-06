@@ -1,19 +1,39 @@
 import * as boardService from '../services/boardService.js';
+import { assertResourceId } from '../utils/resourceId.js';
 
-export function list(req, res) {
+export async function list(req, res) {
   res.json({
-    data: boardService.listBoards(req.user),
+    data: await boardService.listBoards(req.user),
   });
 }
 
-export function create(req, res) {
-  const board = boardService.createBoard(req.body, req.user);
+export async function create(req, res) {
+  const board = await boardService.createBoard(req.body, req.user);
 
   res.status(201).location(`/api/boards/${board.id}`).json({
     data: board,
   });
 }
 
-export function listTasks(req, res) {
-  res.json(boardService.listBoardTasks(req.params.id, req.query, req.user));
+export async function listTasks(req, res) {
+  assertResourceId(req.params.id, 'Board');
+
+  res.json(
+    await boardService.listBoardTasks(
+      req.params.id,
+      req.validated.query,
+      req.user,
+    ),
+  );
+}
+
+export async function taskStats(req, res) {
+  assertResourceId(req.params.id, 'Board');
+
+  res.json({
+    data: await boardService.getBoardTaskStats(
+      req.params.id,
+      req.user,
+    ),
+  });
 }

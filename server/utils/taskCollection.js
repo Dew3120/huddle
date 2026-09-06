@@ -1,13 +1,17 @@
 const allowedSortFields = ['title', 'assignee', 'status', 'dueDate'];
 
 export function publicTask(task) {
+  if (task.toJSON) {
+    return task.toJSON();
+  }
+
   const { ownerId, ...taskData } = task;
   return taskData;
 }
 
 export function queryTaskCollection(
   tasks,
-  { status, assignee, sort = 'dueDate', page = '1', limit = '20' } = {},
+  { status, assignee, sort = 'dueDate', page = 1, limit = 20 } = {},
 ) {
   let result = tasks;
 
@@ -22,8 +26,8 @@ export function queryTaskCollection(
     );
   }
 
-  const pageNumber = Math.max(Number(page) || 1, 1);
-  const limitNumber = Math.min(Math.max(Number(limit) || 20, 1), 100);
+  const pageNumber = page;
+  const limitNumber = limit;
   const sortField = sort.startsWith('-') ? sort.slice(1) : sort;
   const sortDirection = sort.startsWith('-') ? -1 : 1;
 

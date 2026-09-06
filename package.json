@@ -6,9 +6,12 @@
     "dev": "vite",
     "dev:server": "node --watch server/server.js",
     "start:server": "node server/server.js",
+    "seed": "node server/db/seed.js",
     "build": "vite build",
+    "test": "node --test src/api/client.test.js src/db/taskCache.test.js src/services/taskSynchronization.test.js",
     "preview": "vite preview",
-    "verify:assignment-02": "node scripts/verify-assignment-02.mjs"
+    "verify:assignment-02": "node scripts/verify-assignment-02.mjs",
+    "verify:assignment-03": "node scripts/verify-assignment-03.mjs"
   },
   "repository": {
     "type": "git",
@@ -26,10 +29,13 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "events": "^3.3.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.5",
+    "pouchdb-browser": "^9.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
@@ -40,7 +46,14 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^10.8.1",
+    "fake-indexeddb": "^6.2.5",
     "prettier": "^3.9.6",
-    "vite": "^8.2.1"
+    "vite": "^8.2.1",
+    "vite-plugin-pwa": "^1.3.0"
+  },
+  "overrides": {
+    "pouchdb-browser": {
+      "uuid": "^11.1.1"
+    }
   }
 }

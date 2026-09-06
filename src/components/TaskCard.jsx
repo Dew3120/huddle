@@ -13,6 +13,7 @@ export default function TaskCard({
   assignee = 'Unassigned',
   status = 'todo',
   dueDate,
+  syncState,
   onDelete,
   onMove,
 }) {
@@ -21,11 +22,22 @@ export default function TaskCard({
 
   return (
     <article className={`task-card task-card--${status}`}>
-      <span
-        className={`task-card__status status-pill status-pill--${status}`}
-      >
-        {statusLabels[status] ?? 'Unknown'}
-      </span>
+      <div className="task-card__badges">
+        <span
+          className={`task-card__status status-pill status-pill--${status}`}
+        >
+          {statusLabels[status] ?? 'Unknown'}
+        </span>
+        {syncState && (
+          <span className={`sync-pill sync-pill--${syncState}`}>
+            {syncState === 'conflict'
+              ? 'Conflict'
+              : syncState === 'failed'
+                ? 'Sync failed'
+                : 'Pending sync'}
+          </span>
+        )}
+      </div>
 
       <h3 className="task-card__title">
         <Link className="task-card__link" to={`/tasks/${id}`}>

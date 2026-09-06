@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavigation from './components/AppNavigation.jsx';
 import CursorGlow from './components/CursorGlow.jsx';
 import LoadingState from './components/LoadingState.jsx';
+import SyncStatusBar from './components/SyncStatusBar.jsx';
 import TasksProvider from './context/TasksProvider.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import AuthPage from './pages/AuthPage.jsx';
@@ -55,13 +56,15 @@ export default function App() {
           <LoadingState />
         </main>
       ) : isAuthenticated ? (
-        <TasksProvider>
+        <TasksProvider userId={user?.id}>
           <AppNavigation
             theme={theme}
             user={user}
             onLogout={logout}
             onToggleTheme={toggleTheme}
           />
+
+          <SyncStatusBar />
 
           <Routes>
             <Route path="/" element={<BoardPage />} />

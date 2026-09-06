@@ -22,6 +22,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
   const [submitting, setSubmitting] = useState(false);
 
   const today = getToday();
+  const minimumDueDate = task.dueDate < today ? task.dueDate : today;
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -56,7 +57,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
 
     if (!form.dueDate) {
       nextErrors.dueDate = 'Select a due date.';
-    } else if (form.dueDate < today) {
+    } else if (form.dueDate < today && form.dueDate !== task.dueDate) {
       nextErrors.dueDate = 'The due date cannot be in the past.';
     }
 
@@ -138,7 +139,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
           type="date"
           name="dueDate"
           value={form.dueDate}
-          min={today}
+          min={minimumDueDate}
           onChange={handleChange}
           aria-invalid={Boolean(errors.dueDate)}
           aria-describedby={
