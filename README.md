@@ -136,7 +136,7 @@ The task model declares indexes for the board screen, overdue queries, assignee 
 ```powershell
 git clone https://github.com/Dew3120/huddle.git
 cd huddle
-git switch feature/session-03-client-persistence
+git checkout assignment-03-working-full-stack-application
 npm ci
 ```
 
