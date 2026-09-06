@@ -10,7 +10,8 @@
     "build": "vite build",
     "test": "node --test src/db/taskCache.test.js src/services/taskSynchronization.test.js",
     "preview": "vite preview",
-    "verify:assignment-02": "node scripts/verify-assignment-02.mjs"
+    "verify:assignment-02": "node scripts/verify-assignment-02.mjs",
+    "verify:assignment-03": "node scripts/verify-assignment-03.mjs"
   },
   "repository": {
     "type": "git",
